@@ -67,10 +67,14 @@ Back that directory up and you've backed up everything.
 2. Enable proxying to the container — Virtualmin: *Server Configuration → Edit Proxy Website*,
    or add to the Apache config:
    ```apache
+   ProxyPreserveHost On
    ProxyPass        / http://127.0.0.1:8018/
    ProxyPassReverse / http://127.0.0.1:8018/
    RequestHeader set X-Forwarded-Proto "https"
    ```
+   `ProxyPreserveHost On` is required — without it Apache forwards `Host: 127.0.0.1`
+   and Django's ALLOWED_HOSTS check returns 400. `RequestHeader` needs mod_headers
+   (`a2enmod headers`).
 3. Set in `.env`:
    ```dotenv
    LUMIVISION_ALLOWED_HOSTS=vision.example.com
