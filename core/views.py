@@ -77,7 +77,7 @@ def dashboard(request):
     boards = (
         Board.visible_to(request.user)
         .select_related("owner")
-        .annotate(asset_count=Count("boardasset"))
+        .annotate(asset_count=Count("boardasset", distinct=True))
     )
     return render(request, "core/dashboard.html", {"boards": boards})
 
@@ -85,15 +85,16 @@ def dashboard(request):
 @member_required
 def board_create(request):
     if request.method == "POST":
-        form = BoardForm(request.POST, request.FILES)
+        form = BoardForm(request.POST, request.FILES, owner=request.user)
         if form.is_valid():
             board = form.save(commit=False)
             board.owner = request.user
             board.save()
+            form.save_m2m()
             messages.success(request, f"Board “{board.name}” created.")
             return redirect(board)
     else:
-        form = BoardForm()
+        form = BoardForm(owner=request.user)
     return render(
         request, "core/board_form.html", {"form": form, "board": None}
     )
@@ -105,7 +106,7 @@ def board_edit(request, slug):
     if not board.can_edit(request.user):
         return HttpResponseForbidden()
     if request.method == "POST":
-        form = BoardForm(request.POST, request.FILES, instance=board)
+        form = BoardForm(request.POST, request.FILES, instance=board, owner=board.owner)
         if form.is_valid():
             old = Board.objects.get(pk=board.pk)
             old_banner, old_logo = old.banner_image, old.logo_image
@@ -117,7 +118,7 @@ def board_edit(request, slug):
             messages.success(request, "Board updated.")
             return redirect(updated)
     else:
-        form = BoardForm(instance=board)
+        form = BoardForm(instance=board, owner=board.owner)
     return render(
         request, "core/board_form.html", {"form": form, "board": board}
     )
@@ -173,7 +174,10 @@ def board_detail(request, slug):
         {c for a in assets for c in a.categories.all()}, key=lambda c: c.name
     )
     can_edit = user.is_authenticated and board.can_edit(user)
-    can_post = user.is_authenticated and user.can_post
+    can_post = board.can_contribute(user)
+    collaborator_names = list(
+        board.collaborators.values_list("username", flat=True)
+    )
     return render(
         request,
         "core/board_detail.html",
@@ -183,6 +187,7 @@ def board_detail(request, slug):
             "categories": categories,
             "can_edit_board": can_edit,
             "can_post": can_post,
+            "collaborator_names": collaborator_names,
             "asset_form": AssetForm(user=user, initial={"boards": [board.pk]})
             if can_post
             else None,
@@ -281,7 +286,7 @@ def asset_create(request):
 def asset_quick_upload(request, slug):
     """Drag-and-drop upload target: files dropped straight onto a board."""
     board = get_object_or_404(Board, slug=slug)
-    if not board.can_view(request.user):
+    if not board.can_contribute(request.user):
         return HttpResponseForbidden()
     created = 0
     errors = []
@@ -352,15 +357,15 @@ def asset_edit(request, pk):
                     asset.thumb = thumb
             asset.save()
             asset.categories.set(form.category_objects())
-            # Sync board membership — but only for boards this user can see,
-            # so an unrelated private board's placement is never touched.
-            visible = set(
-                Board.visible_to(request.user).values_list("pk", flat=True)
+            # Sync board membership — but only among boards this user can
+            # contribute to, so other placements are never touched.
+            contributable = set(
+                Board.contributable_by(request.user).values_list("pk", flat=True)
             )
             current = set(asset.boards.values_list("pk", flat=True))
             chosen = {b.pk for b in form.cleaned_data["boards"]}
             BoardAsset.objects.filter(
-                asset=asset, board_id__in=(current & visible) - chosen
+                asset=asset, board_id__in=(current & contributable) - chosen
             ).delete()
             _attach_to_boards(
                 asset,

@@ -41,6 +41,14 @@
                 {{ form.visibility }}
                 <p class="lv-help">Private — only you · Registered Users — anyone signed in · Public — visible to the world (view-only)</p>
             </div>
+            {% if form.collaborators.field.queryset %}
+            <div class="lv-field">
+                <label>Collaborators</label>
+                <div class="lv-board-picker">{{ form.collaborators }}</div>
+                <p class="lv-help">Collaborators can add content to this board. They can also see it when it's private.</p>
+                {% if form.collaborators.errors %}<div class="lv-errors">{{ form.collaborators.errors.0 }}</div>{% endif %}
+            </div>
+            {% endif %}
             <button type="submit" class="btn btn-primary">{% if board %}Save changes{% else %}Create board{% endif %}</button>
         </form>
         {% if board %}

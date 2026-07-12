@@ -7,9 +7,11 @@ animated transitions) inspired by the Luminatus visual language.
 ## Features
 
 - **Boards** with three visibility levels:
-  - **Private** — only the creator (and admins) can see it
+  - **Private** — only the creator, collaborators, and admins can see it
   - **Registered Users** — every signed-in user can see it
   - **Public** — viewable by anyone on the internet, always read-only
+- **Collaborators**: board owners pick specific members who may add content to their
+  board — everyone else views only. Collaborators can also see private boards they're on
 - **Assets**: image uploads, video uploads (mp4/webm/mov), YouTube/Vimeo embeds, and rich links
   with automatically fetched Open Graph previews
 - Assets can live on **multiple boards** at once and carry **categories** used to filter
@@ -99,7 +101,8 @@ $env:LUMIVISION_DEBUG = "1"
 | --- | :-: | :-: | :-: | :-: |
 | View public boards | ✔ | ✔ | ✔ | ✔ |
 | View registered-user boards | ✔ | ✔ | ✔ | – |
-| Create boards / post assets | ✔ | ✔ | – | – |
+| Create boards | ✔ | ✔ | – | – |
+| Post assets to own/collaborated boards | ✔ | ✔ | – | – |
 | Delete own assets | ✔ | ✔ | – | – |
 | Delete anyone's assets / boards | ✔ | – | – | – |
 | Generate invites, manage users | ✔ | – | – | – |

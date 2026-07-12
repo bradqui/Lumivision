@@ -37,10 +37,27 @@ class RegisterForm(GlassFormMixin, UserCreationForm):
 class BoardForm(GlassFormMixin, forms.ModelForm):
     class Meta:
         model = Board
-        fields = ("name", "description", "banner_image", "logo_image", "visibility")
+        fields = (
+            "name",
+            "description",
+            "banner_image",
+            "logo_image",
+            "visibility",
+            "collaborators",
+        )
         widgets = {
             "description": forms.Textarea(attrs={"rows": 3}),
+            "collaborators": forms.CheckboxSelectMultiple,
         }
+
+    def __init__(self, *args, owner=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        qs = User.objects.filter(
+            is_active=True, role__in=[User.Role.MEMBER, User.Role.ADMIN]
+        ).order_by("username")
+        if owner:
+            qs = qs.exclude(pk=owner.pk)
+        self.fields["collaborators"].queryset = qs
 
 
 class InviteForm(GlassFormMixin, forms.ModelForm):
@@ -84,7 +101,7 @@ class AssetForm(GlassFormMixin, forms.Form):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
-        self.fields["boards"].queryset = Board.visible_to(user)
+        self.fields["boards"].queryset = Board.contributable_by(user)
 
     def clean_file(self):
         f = self.cleaned_data.get("file")
@@ -156,7 +173,7 @@ class AssetEditForm(GlassFormMixin, forms.Form):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["boards"].queryset = Board.visible_to(user)
+        self.fields["boards"].queryset = Board.contributable_by(user)
 
     def category_objects(self):
         return resolve_categories(self.cleaned_data.get("categories"))

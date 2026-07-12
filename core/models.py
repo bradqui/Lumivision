@@ -95,6 +95,12 @@ class Board(models.Model):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="boards"
     )
+    collaborators = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name="collab_boards",
+        help_text="Registered users who may add content to this board",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     assets = models.ManyToManyField("Asset", through="BoardAsset", related_name="boards")
@@ -123,10 +129,24 @@ class Board(models.Model):
             return False
         if self.visibility == self.Visibility.REGISTERED:
             return True
-        return self.owner_id == user.id or user.is_admin_role
+        return (
+            self.owner_id == user.id
+            or user.is_admin_role
+            or self.collaborators.filter(pk=user.pk).exists()
+        )
 
     def can_edit(self, user):
         return user.is_authenticated and (self.owner_id == user.id or user.is_admin_role)
+
+    def can_contribute(self, user):
+        """May this user add assets to the board?"""
+        if not user.is_authenticated or not user.can_post:
+            return False
+        return (
+            self.owner_id == user.id
+            or user.is_admin_role
+            or self.collaborators.filter(pk=user.pk).exists()
+        )
 
     @staticmethod
     def visible_to(user):
@@ -139,7 +159,19 @@ class Board(models.Model):
         return qs.filter(
             Q(visibility__in=[Board.Visibility.PUBLIC, Board.Visibility.REGISTERED])
             | Q(owner=user)
-        )
+            | Q(collaborators=user)
+        ).distinct()
+
+    @staticmethod
+    def contributable_by(user):
+        """Queryset of boards this user may add assets to."""
+        if not user.is_authenticated or not user.can_post:
+            return Board.objects.none()
+        if user.is_admin_role:
+            return Board.objects.all()
+        return Board.objects.filter(
+            Q(owner=user) | Q(collaborators=user)
+        ).distinct()
 
     def __str__(self):
         return self.name

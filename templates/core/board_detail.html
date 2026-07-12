@@ -21,7 +21,7 @@
             {% if board.description %}<p class="desc">{{ board.description }}</p>{% endif %}
             <p class="desc" style="margin-top:0.5rem; font-size:0.78rem;">
                 <span class="lv-vis-badge lv-vis-{{ board.visibility }}">{{ board.get_visibility_display }}</span>
-                &nbsp; curated by {{ board.owner.username }} · {{ assets|length }} asset{{ assets|length|pluralize }}
+                &nbsp; curated by {{ board.owner.username }}{% if collaborator_names %} with {{ collaborator_names|join:", " }}{% endif %} · {{ assets|length }} asset{{ assets|length|pluralize }}
             </p>
         </div>
         <div class="actions">

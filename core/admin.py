@@ -37,6 +37,7 @@ class BoardAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "visibility", "owner", "updated_at")
     list_filter = ("visibility",)
     search_fields = ("name", "slug")
+    filter_horizontal = ("collaborators",)
     inlines = [BoardAssetInline]
 
 
