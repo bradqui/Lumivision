@@ -14,7 +14,7 @@
 {% if boards %}
 <div class="lv-board-grid">
     {% for board in boards %}
-    <a class="lv-board-card reveal" href="{{ board.get_absolute_url }}">
+    <a class="lv-board-card reveal{% if board.theme %} theme-{{ board.theme }}{% endif %}" href="{{ board.get_absolute_url }}">
         {% if board.banner_image %}
             <div class="lv-board-cover" style="background-image: url('{{ board.banner_image.url }}');"></div>
         {% else %}

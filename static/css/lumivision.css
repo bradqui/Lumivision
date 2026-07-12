@@ -31,9 +31,32 @@
 }
 
 /* ---------- themes ----------
-   Board pages force the board's theme for every viewer; otherwise the
-   user's own account theme applies. purple-gold-dark is the :root default. */
-body.theme-neon-cyan-dark {
+   Theme classes work on ANY element: the body (user's app theme / board
+   page theme) and individual dashboard cards (each card shows its board's
+   theme). Because var() references inside custom properties are baked
+   where the property is DECLARED, every block restates the derived set
+   so a scoped theme re-derives correctly. */
+.theme-purple-gold-dark {
+    --a1: 126, 116, 212;
+    --a2: 242, 196, 120;
+    --dark-bg: #07080D;
+    --bg-rgb: 7, 8, 13;
+    --panel-rgb: 10, 12, 20;
+    --menu-bg: #10121c;
+    --text: #E0E2F0;
+    --text-dim: #B0B5D1;
+    --text-faint: #7d84a8;
+    --strong: #ffffff;
+    --on-accent: #0a0b12;
+    --danger: #e06a7a;
+    --purple: rgb(var(--a1));
+    --gold: rgb(var(--a2));
+    --glass-bg: rgba(var(--panel-rgb), 0.65);
+    --glass-bg-solid: rgba(var(--panel-rgb), 0.94);
+    --glass-border: rgba(var(--a1), 0.2);
+    --glass-border-hi: rgba(var(--a1), 0.45);
+}
+.theme-neon-cyan-dark {
     --a1: 56, 189, 248;
     --a2: 45, 212, 191;
     --dark-bg: #04090F;
@@ -43,8 +66,17 @@ body.theme-neon-cyan-dark {
     --text: #D7E6F2;
     --text-dim: #9AB2C6;
     --text-faint: #66809A;
+    --strong: #ffffff;
+    --on-accent: #0a0b12;
+    --danger: #e06a7a;
+    --purple: rgb(var(--a1));
+    --gold: rgb(var(--a2));
+    --glass-bg: rgba(var(--panel-rgb), 0.65);
+    --glass-bg-solid: rgba(var(--panel-rgb), 0.94);
+    --glass-border: rgba(var(--a1), 0.2);
+    --glass-border-hi: rgba(var(--a1), 0.45);
 }
-body.theme-emerald-dark {
+.theme-emerald-dark {
     --a1: 52, 211, 153;
     --a2: 227, 197, 95;
     --dark-bg: #050B08;
@@ -54,8 +86,17 @@ body.theme-emerald-dark {
     --text: #DEEDE4;
     --text-dim: #A3BDAF;
     --text-faint: #6C8878;
+    --strong: #ffffff;
+    --on-accent: #0a0b12;
+    --danger: #e06a7a;
+    --purple: rgb(var(--a1));
+    --gold: rgb(var(--a2));
+    --glass-bg: rgba(var(--panel-rgb), 0.65);
+    --glass-bg-solid: rgba(var(--panel-rgb), 0.94);
+    --glass-border: rgba(var(--a1), 0.2);
+    --glass-border-hi: rgba(var(--a1), 0.45);
 }
-body.theme-ember-dark {
+.theme-ember-dark {
     --a1: 249, 115, 22;
     --a2: 250, 204, 21;
     --dark-bg: #0C0604;
@@ -65,46 +106,75 @@ body.theme-ember-dark {
     --text: #F2E4DC;
     --text-dim: #C7AC9E;
     --text-faint: #94776B;
+    --strong: #ffffff;
+    --on-accent: #0a0b12;
+    --danger: #e06a7a;
+    --purple: rgb(var(--a1));
+    --gold: rgb(var(--a2));
+    --glass-bg: rgba(var(--panel-rgb), 0.65);
+    --glass-bg-solid: rgba(var(--panel-rgb), 0.94);
+    --glass-border: rgba(var(--a1), 0.2);
+    --glass-border-hi: rgba(var(--a1), 0.45);
 }
-body.theme-ivory-light,
-body.theme-sky-light,
-body.theme-rose-light {
-    --strong: #191a2e;
-    --on-accent: #ffffff;
-    --menu-bg: #ffffff;
-    --panel-rgb: 255, 255, 255;
-    --glass-bg: rgba(var(--panel-rgb), 0.72);
-    --glass-bg-solid: rgba(var(--panel-rgb), 0.96);
-}
-body.theme-ivory-light {
+.theme-ivory-light {
     --a1: 104, 88, 214;
     --a2: 176, 124, 32;
     --dark-bg: #F4F2EC;
     --bg-rgb: 244, 242, 236;
+    --panel-rgb: 255, 255, 255;
+    --menu-bg: #ffffff;
     --text: #33344a;
     --text-dim: #5d5f7d;
     --text-faint: #8d90ab;
+    --strong: #191a2e;
+    --on-accent: #ffffff;
     --danger: #bb3a50;
+    --purple: rgb(var(--a1));
+    --gold: rgb(var(--a2));
+    --glass-bg: rgba(var(--panel-rgb), 0.72);
+    --glass-bg-solid: rgba(var(--panel-rgb), 0.96);
+    --glass-border: rgba(var(--a1), 0.2);
+    --glass-border-hi: rgba(var(--a1), 0.45);
 }
-body.theme-sky-light {
+.theme-sky-light {
     --a1: 37, 99, 235;
     --a2: 13, 148, 136;
     --dark-bg: #EEF3F9;
     --bg-rgb: 238, 243, 249;
+    --panel-rgb: 255, 255, 255;
+    --menu-bg: #ffffff;
     --text: #2b3348;
     --text-dim: #56617d;
     --text-faint: #8792ad;
+    --strong: #191a2e;
+    --on-accent: #ffffff;
     --danger: #bb3a50;
+    --purple: rgb(var(--a1));
+    --gold: rgb(var(--a2));
+    --glass-bg: rgba(var(--panel-rgb), 0.72);
+    --glass-bg-solid: rgba(var(--panel-rgb), 0.96);
+    --glass-border: rgba(var(--a1), 0.2);
+    --glass-border-hi: rgba(var(--a1), 0.45);
 }
-body.theme-rose-light {
+.theme-rose-light {
     --a1: 219, 39, 119;
     --a2: 147, 51, 234;
     --dark-bg: #FAF3F5;
     --bg-rgb: 250, 243, 245;
+    --panel-rgb: 255, 255, 255;
+    --menu-bg: #ffffff;
     --text: #3a2e35;
     --text-dim: #6d5a64;
     --text-faint: #9c8791;
+    --strong: #191a2e;
+    --on-accent: #ffffff;
     --danger: #bb3a50;
+    --purple: rgb(var(--a1));
+    --gold: rgb(var(--a2));
+    --glass-bg: rgba(var(--panel-rgb), 0.72);
+    --glass-bg-solid: rgba(var(--panel-rgb), 0.96);
+    --glass-border: rgba(var(--a1), 0.2);
+    --glass-border-hi: rgba(var(--a1), 0.45);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
