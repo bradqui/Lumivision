@@ -136,6 +136,30 @@ def fetch_og(url):
 THUMB_MAX = 900  # px, longest edge
 
 
+AVATAR_SIZE = 256
+
+
+def make_avatar(uploaded_file):
+    """Center-crop an uploaded image to a square avatar JPEG."""
+    try:
+        img = Image.open(uploaded_file)
+        img = ImageOps.exif_transpose(img)
+        if img.mode not in ("RGB", "L"):
+            background = Image.new("RGB", img.size, (7, 8, 13))
+            if img.mode in ("RGBA", "LA", "P"):
+                img = img.convert("RGBA")
+                background.paste(img, mask=img.split()[-1])
+                img = background
+            else:
+                img = img.convert("RGB")
+        img = ImageOps.fit(img, (AVATAR_SIZE, AVATAR_SIZE), Image.LANCZOS)
+        buf = io.BytesIO()
+        img.save(buf, "JPEG", quality=85, optimize=True)
+        return ContentFile(buf.getvalue(), name="avatar.jpg")
+    except Exception:
+        return None
+
+
 def extract_video_poster(video_path):
     """Grab a frame from an uploaded video with ffmpeg. Returns a JPEG
     ContentFile, or None when ffmpeg is unavailable or the video is unreadable

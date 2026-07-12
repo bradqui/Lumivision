@@ -26,7 +26,13 @@ from .forms import (
 )
 from .models import Asset, Board, BoardAsset, Category, Invite, User
 from .themes import THEMES, THEME_KEYS
-from .utils import extract_video_poster, fetch_og, make_thumbnail, parse_embed
+from .utils import (
+    extract_video_poster,
+    fetch_og,
+    make_avatar,
+    make_thumbnail,
+    parse_embed,
+)
 
 
 def member_required(view):
@@ -84,11 +90,36 @@ def join(request, token):
 @login_required
 def account(request):
     if request.method == "POST":
-        theme = request.POST.get("theme", "")
-        if theme in THEME_KEYS:
-            request.user.theme = theme
-            request.user.save(update_fields=["theme"])
-            messages.success(request, "Theme updated.")
+        action = request.POST.get("action", "theme")
+        user = request.user
+        if action == "avatar":
+            uploaded = request.FILES.get("avatar")
+            if not uploaded:
+                messages.error(request, "Choose an image first.")
+            elif uploaded.size > 15 * 1024 * 1024:
+                messages.error(request, "Avatar image must be under 15 MB.")
+            else:
+                avatar = make_avatar(uploaded)
+                if avatar:
+                    if user.avatar:
+                        user.avatar.delete(save=False)
+                    user.avatar = avatar
+                    user.save(update_fields=["avatar"])
+                    messages.success(request, "Profile picture updated.")
+                else:
+                    messages.error(request, "Could not read that image file.")
+        elif action == "remove_avatar":
+            if user.avatar:
+                user.avatar.delete(save=False)
+                user.avatar = ""
+                user.save(update_fields=["avatar"])
+                messages.success(request, "Profile picture removed.")
+        else:
+            theme = request.POST.get("theme", "")
+            if theme in THEME_KEYS:
+                user.theme = theme
+                user.save(update_fields=["theme"])
+                messages.success(request, "Theme updated.")
         return redirect("account")
     return render(request, "core/account.html", {"themes": THEMES})
 

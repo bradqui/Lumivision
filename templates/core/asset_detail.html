@@ -11,7 +11,7 @@
     <div>
         <h1 style="font-size:1.3rem;">{{ asset.display_title }}</h1>
         <p class="sub">
-            {{ asset.get_kind_display }} · posted by {{ asset.owner.username }} · {{ asset.created_at|date:"M j, Y" }}
+            {{ asset.get_kind_display }} · posted by <span class="lv-owner">{% include "core/_avatar.html" with person=asset.owner size="sm" %} {{ asset.owner.username }}</span> · {{ asset.created_at|date:"M j, Y" }}
         </p>
     </div>
     <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">

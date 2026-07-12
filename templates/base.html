@@ -47,7 +47,7 @@
                 <a class="lv-nav-link {% if request.resolver_match.url_name == 'manage_users' %}active{% endif %}" href="{% url 'manage_users' %}">Users</a>
             {% endif %}
             <a class="lv-userchip" href="{% url 'account' %}" style="text-decoration:none;" title="Account settings">
-                <span class="lv-avatar">{{ user.username|first|upper }}</span>
+                {% include "core/_avatar.html" with person=user %}
                 <span class="lv-username">{{ user.username }}</span>
                 <span class="lv-role lv-role-{{ user.role }}">{{ user.get_role_display }}</span>
             </a>

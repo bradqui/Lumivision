@@ -28,7 +28,7 @@
         <div class="lv-board-meta">
             <div>
                 {% if board.banner_image and not board.logo_image %}<div class="name">{{ board.name }}</div>{% endif %}
-                <div class="count">{{ board.asset_count }} asset{{ board.asset_count|pluralize }} · {{ board.owner.username }}</div>
+                <div class="count">{{ board.asset_count }} asset{{ board.asset_count|pluralize }} · <span class="lv-owner">{% include "core/_avatar.html" with person=board.owner size="sm" %} {{ board.owner.username }}</span></div>
             </div>
             <span class="lv-vis-badge lv-vis-{{ board.visibility }}">{{ board.get_visibility_display }}</span>
         </div>

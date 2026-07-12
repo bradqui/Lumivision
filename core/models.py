@@ -18,6 +18,11 @@ class User(AbstractUser):
         VIEWER = "viewer", "Viewer"
 
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.MEMBER)
+    avatar = models.ImageField(
+        upload_to="avatars/",
+        blank=True,
+        help_text="Profile picture, shown wherever the username appears",
+    )
     theme = models.CharField(
         max_length=30,
         choices=THEME_CHOICES,

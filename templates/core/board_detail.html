@@ -22,7 +22,7 @@
             {% if board.description %}<p class="desc">{{ board.description }}</p>{% endif %}
             <p class="desc" style="margin-top:0.5rem; font-size:0.78rem;">
                 <span class="lv-vis-badge lv-vis-{{ board.visibility }}">{{ board.get_visibility_display }}</span>
-                &nbsp; curated by {{ board.owner.username }}{% if collaborator_names %} with {{ collaborator_names|join:", " }}{% endif %} · {{ assets|length }} asset{{ assets|length|pluralize }}
+                &nbsp; curated by <span class="lv-owner">{% include "core/_avatar.html" with person=board.owner size="sm" %} {{ board.owner.username }}</span>{% if collaborator_names %} with {{ collaborator_names|join:", " }}{% endif %} · {{ assets|length }} asset{{ assets|length|pluralize }}
             </p>
         </div>
         <div class="actions">
@@ -81,7 +81,7 @@
                 </div>
                 {% endif %}
                 <div class="lv-card-foot">
-                    <span>{{ asset.owner.username }}</span>
+                    <span class="lv-owner">{% include "core/_avatar.html" with person=asset.owner size="sm" %} {{ asset.owner.username }}</span>
                     <div class="lv-card-actions">
                         <button class="lv-iconbtn" title="Copy link" data-copy="{% url 'asset_detail' asset.pk %}">🔗</button>
                         {% if asset.user_can_delete %}

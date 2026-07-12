@@ -15,6 +15,27 @@
 </div>
 
 <div class="lv-panel reveal">
+    <h2 style="font-size:0.95rem; color:var(--purple); margin-bottom:0.5rem;">Profile Picture</h2>
+    <p class="lv-help" style="margin-bottom:1.2rem;">Shown next to your name across Lumivision. Square-cropped automatically.</p>
+    <div style="display:flex; align-items:center; gap:1.4rem; flex-wrap:wrap;">
+        {% include "core/_avatar.html" with person=user size="lg" %}
+        <form method="post" enctype="multipart/form-data" style="display:flex; gap:0.7rem; align-items:center; flex-wrap:wrap;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="avatar">
+            <input type="file" name="avatar" accept="image/*" class="lv-input" style="width:auto;">
+            <button type="submit" class="btn btn-primary btn-sm">Upload</button>
+        </form>
+        {% if user.avatar %}
+        <form method="post" class="lv-inline-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="remove_avatar">
+            <button type="submit" class="btn btn-ghost btn-sm">Remove</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="lv-panel reveal" style="margin-top:1.4rem;">
     <h2 style="font-size:0.95rem; color:var(--purple); margin-bottom:0.5rem;">Theme</h2>
     <p class="lv-help" style="margin-bottom:1.2rem;">Changes how Lumivision looks for you everywhere — except on boards whose creator has set a board theme.</p>
     <form method="post">

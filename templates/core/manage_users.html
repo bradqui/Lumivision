@@ -27,9 +27,11 @@
             {% for u in users %}
             <tr class="{% if not u.is_active %}lv-badge-off{% endif %}">
                 <td>
-                    <span class="lv-avatar" style="display:inline-grid; margin-right:0.5rem; vertical-align:middle;">{{ u.username|first|upper }}</span>
-                    <strong>{{ u.username }}</strong>
-                    {% if u == user %}<span class="lv-muted">(you)</span>{% endif %}
+                    <span class="lv-owner">
+                        {% include "core/_avatar.html" with person=u %}
+                        <strong>{{ u.username }}</strong>
+                        {% if u == user %}<span class="lv-muted">(you)</span>{% endif %}
+                    </span>
                 </td>
                 <td class="lv-muted">{{ u.email|default:"—" }}</td>
                 <td>

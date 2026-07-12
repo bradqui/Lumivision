@@ -3,7 +3,7 @@
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-from .models import Asset, Board
+from .models import Asset, Board, User
 
 
 def _delete_field_file(field_file):
@@ -21,3 +21,8 @@ def delete_asset_files(sender, instance, **kwargs):
 def delete_board_images(sender, instance, **kwargs):
     _delete_field_file(instance.banner_image)
     _delete_field_file(instance.logo_image)
+
+
+@receiver(post_delete, sender=User)
+def delete_user_avatar(sender, instance, **kwargs):
+    _delete_field_file(instance.avatar)
