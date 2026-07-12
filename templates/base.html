@@ -36,7 +36,10 @@
         </svg>
         <span>LUMI<em>VISION</em></span>
     </a>
-    <div class="lv-nav-right">
+    <button class="lv-nav-toggle" id="lv-nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="lv-nav-menu">
+        <span></span><span></span><span></span>
+    </button>
+    <div class="lv-nav-right" id="lv-nav-menu">
         {% if user.is_authenticated %}
             <a class="lv-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">Boards</a>
             {% if user.is_admin_role %}

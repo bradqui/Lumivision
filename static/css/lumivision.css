@@ -282,6 +282,7 @@ a { color: var(--gold); }
 .lv-logo:hover .lv-logo-mark { transform: rotate(90deg) scale(1.08); }
 
 .lv-nav-right { display: flex; align-items: center; gap: 1.4rem; }
+.lv-nav-toggle { display: none; }
 .lv-nav-link {
     color: var(--text);
     text-decoration: none;
@@ -1321,9 +1322,62 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
     .lv-nav { padding: 0.65rem 0.9rem; }
     .lv-logo { font-size: 0.85rem; letter-spacing: 2px; gap: 0.5rem; }
     .lv-logo-mark { width: 24px; height: 24px; }
-    .lv-userchip { display: none; } /* identity still clear from content; saves nav width */
-    .lv-nav-right { gap: 0.9rem; }
-    .lv-nav-link { font-size: 0.72rem; letter-spacing: 0.5px; }
+    /* nav collapses into a hamburger dropdown */
+    .lv-nav-toggle {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+    }
+    .lv-nav-toggle span {
+        width: 22px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--text);
+        transition: transform 0.3s var(--ease), opacity 0.25s ease;
+    }
+    .lv-nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .lv-nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .lv-nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .lv-nav-right {
+        display: none;
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0.7rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+        min-width: 230px;
+        padding: 0.8rem;
+        background: var(--glass-bg-solid);
+        border: 1px solid var(--glass-border-hi);
+        border-radius: 14px;
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+    .lv-nav-right.open { display: flex; animation: fadeUp 0.25s var(--ease) both; }
+    .lv-nav-right .lv-nav-link {
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        padding: 0.6rem 0.7rem;
+        border-radius: 8px;
+        width: 100%;
+        text-align: left;
+    }
+    .lv-nav-right .lv-nav-link:hover { background: rgba(var(--a1), 0.1); }
+    .lv-nav-right .lv-nav-link::after { display: none; }
+    .lv-nav-right .lv-nav-link.active { background: rgba(var(--a1), 0.14); }
+    .lv-nav-right .lv-userchip {
+        justify-content: flex-start;
+        margin: 0.2rem 0;
+    }
+    .lv-nav-right .lv-inline-form { display: block; }
 
     .lv-main { padding: 5.6rem 1rem 3rem; }
     .lv-page-head { margin-bottom: 1.6rem; }
@@ -1375,8 +1429,5 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
 }
 
 @media (max-width: 400px) {
-    .lv-nav-right { gap: 0.6rem; }
-    .lv-nav-link { font-size: 0.66rem; letter-spacing: 0.3px; }
-    .lv-logo span { display: none; } /* logo mark only on the narrowest screens */
     .lv-masonry { grid-template-columns: 1fr; }
 }

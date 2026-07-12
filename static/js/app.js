@@ -32,6 +32,35 @@
         setTimeout(() => el.remove(), 4400 + i * 250);
     });
 
+    /* ---------------- mobile nav dropdown ---------------- */
+    const navToggle = document.getElementById("lv-nav-toggle");
+    const navMenu = document.getElementById("lv-nav-menu");
+    function closeNav() {
+        if (!navMenu) return;
+        navMenu.classList.remove("open");
+        navToggle.classList.remove("open");
+        navToggle.setAttribute("aria-expanded", "false");
+    }
+    if (navToggle && navMenu) {
+        navToggle.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            const open = navMenu.classList.toggle("open");
+            navToggle.classList.toggle("open", open);
+            navToggle.setAttribute("aria-expanded", String(open));
+        });
+        document.addEventListener("click", (ev) => {
+            if (
+                navMenu.classList.contains("open") &&
+                !ev.target.closest("#lv-nav-menu") &&
+                !ev.target.closest("#lv-nav-toggle")
+            )
+                closeNav();
+        });
+        document.addEventListener("keydown", (ev) => {
+            if (ev.key === "Escape") closeNav();
+        });
+    }
+
     /* ---------------- scroll reveal ---------------- */
     const revealObserver = new IntersectionObserver(
         (entries) => entries.forEach((e) => {
