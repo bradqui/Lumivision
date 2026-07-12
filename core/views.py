@@ -571,9 +571,12 @@ def user_update(request, pk):
         role = request.POST.get("role")
         if role in User.Role.values:
             user.role = role
-            # Admins also get Django-admin access; keep is_staff in sync.
-            user.is_staff = role == User.Role.ADMIN or user.is_superuser
-            user.save(update_fields=["role", "is_staff"])
+            # Lumivision admins are fully trusted: grant Django-admin access
+            # including model permissions (superuser); revoke on demotion.
+            is_admin = role == User.Role.ADMIN
+            user.is_staff = is_admin
+            user.is_superuser = is_admin
+            user.save(update_fields=["role", "is_staff", "is_superuser"])
             messages.success(request, f"{user.username} is now a {user.get_role_display()}.")
     elif action == "toggle_active":
         user.is_active = not user.is_active
