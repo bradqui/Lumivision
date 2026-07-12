@@ -5,7 +5,7 @@ services:
     container_name: lumivision
     restart: unless-stopped
     ports:
-      - "8380:8000"
+      - "8018:8000"
     volumes:
       - ./data:/data
     environment:

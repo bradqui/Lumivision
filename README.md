@@ -35,7 +35,7 @@ git clone <this repo> lumivision && cd lumivision
 docker compose up -d --build
 ```
 
-Open `http://your-server:8380`, sign in with the admin credentials from the compose file,
+Open `http://your-server:8018`, sign in with the admin credentials from the compose file,
 then go to **Invites** to generate registration links for your circle.
 
 All persistent state (SQLite database, uploads, generated secret key) lives in `./data`.
@@ -60,8 +60,8 @@ Back that directory up and you've backed up everything.
 2. Enable proxying to the container — Virtualmin: *Server Configuration → Edit Proxy Website*,
    or add to the Apache config:
    ```apache
-   ProxyPass        / http://127.0.0.1:8380/
-   ProxyPassReverse / http://127.0.0.1:8380/
+   ProxyPass        / http://127.0.0.1:8018/
+   ProxyPassReverse / http://127.0.0.1:8018/
    RequestHeader set X-Forwarded-Proto "https"
    ```
 3. Set in `docker-compose.yml`:
