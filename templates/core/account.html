@@ -6,7 +6,12 @@
         <h1>Your Account</h1>
         <p class="sub">Signed in as <strong>{{ user.username }}</strong> · {{ user.get_role_display }}{% if user.email %} · {{ user.email }}{% endif %}</p>
     </div>
-    <a class="btn btn-gold btn-sm" href="{% url 'password_change' %}">Change password</a>
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+        {% if user.is_staff %}
+        <a class="btn btn-ghost btn-sm" href="{% url 'admin:index' %}" title="Low-level database back-office">Django admin</a>
+        {% endif %}
+        <a class="btn btn-gold btn-sm" href="{% url 'password_change' %}">Change password</a>
+    </div>
 </div>
 
 <div class="lv-panel reveal">
