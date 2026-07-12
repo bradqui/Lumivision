@@ -5,19 +5,16 @@ services:
     container_name: lumivision
     restart: unless-stopped
     ports:
-      - "8018:8000"
+      - "${LUMIVISION_HOST_PORT:-8018}:8000"
     volumes:
       - ./data:/data
     environment:
-      # First-run admin account (change the password after first login!)
-      LUMIVISION_ADMIN_USER: admin
-      LUMIVISION_ADMIN_PASSWORD: change-me-now
-      LUMIVISION_ADMIN_EMAIL: ""
-      # Your public hostname(s), comma-separated
-      LUMIVISION_ALLOWED_HOSTS: "*"
-      # Required when served over HTTPS through the Virtualmin proxy,
-      # e.g. https://vision.example.com
-      LUMIVISION_TRUSTED_ORIGINS: ""
-      # Optional tuning
-      LUMIVISION_MAX_UPLOAD_MB: "250"
-      LUMIVISION_TIME_ZONE: "America/New_York"
+      # All values come from .env — copy .env.example to .env and edit it.
+      LUMIVISION_ADMIN_USER: ${LUMIVISION_ADMIN_USER:-admin}
+      LUMIVISION_ADMIN_PASSWORD: ${LUMIVISION_ADMIN_PASSWORD:?set LUMIVISION_ADMIN_PASSWORD in .env}
+      LUMIVISION_ADMIN_EMAIL: ${LUMIVISION_ADMIN_EMAIL:-}
+      LUMIVISION_ALLOWED_HOSTS: ${LUMIVISION_ALLOWED_HOSTS:-*}
+      LUMIVISION_TRUSTED_ORIGINS: ${LUMIVISION_TRUSTED_ORIGINS:-}
+      LUMIVISION_MAX_UPLOAD_MB: ${LUMIVISION_MAX_UPLOAD_MB:-250}
+      LUMIVISION_TIME_ZONE: ${LUMIVISION_TIME_ZONE:-UTC}
+      LUMIVISION_WORKERS: ${LUMIVISION_WORKERS:-3}

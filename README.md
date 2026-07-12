@@ -31,21 +31,28 @@ animated transitions) inspired by the Luminatus visual language.
 
 ```bash
 git clone <this repo> lumivision && cd lumivision
-# edit docker-compose.yml: set LUMIVISION_ADMIN_PASSWORD and your hostname
+cp .env.example .env
+nano .env          # set LUMIVISION_ADMIN_PASSWORD and your hostname at minimum
 docker compose up -d --build
 ```
 
-Open `http://your-server:8018`, sign in with the admin credentials from the compose file,
+Compose reads `.env` automatically and refuses to start until
+`LUMIVISION_ADMIN_PASSWORD` is set. Because `.env` is gitignored, your settings survive
+`git pull` untouched.
+
+Open `http://your-server:8018`, sign in with the admin credentials from `.env`,
 then go to **Invites** to generate registration links for your circle.
 
 All persistent state (SQLite database, uploads, generated secret key) lives in `./data`.
 Back that directory up and you've backed up everything.
 
-### Environment variables
+### Environment variables (set in `.env`)
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `LUMIVISION_ADMIN_USER` / `LUMIVISION_ADMIN_PASSWORD` | – | First-run admin account (created once; changing it later has no effect) |
+| `LUMIVISION_ADMIN_PASSWORD` | **required** | First-run admin password (account created once; changing it later has no effect) |
+| `LUMIVISION_ADMIN_USER` | `admin` | First-run admin username |
+| `LUMIVISION_HOST_PORT` | `8018` | Host port the container is published on |
 | `LUMIVISION_ALLOWED_HOSTS` | `*` | Comma-separated hostnames, e.g. `vision.example.com` |
 | `LUMIVISION_TRUSTED_ORIGINS` | – | **Required behind HTTPS**, e.g. `https://vision.example.com` |
 | `LUMIVISION_SECRET_KEY` | auto | Auto-generated and persisted in the data volume if unset |
@@ -64,10 +71,10 @@ Back that directory up and you've backed up everything.
    ProxyPassReverse / http://127.0.0.1:8018/
    RequestHeader set X-Forwarded-Proto "https"
    ```
-3. Set in `docker-compose.yml`:
-   ```yaml
-   LUMIVISION_ALLOWED_HOSTS: "vision.example.com"
-   LUMIVISION_TRUSTED_ORIGINS: "https://vision.example.com"
+3. Set in `.env`:
+   ```dotenv
+   LUMIVISION_ALLOWED_HOSTS=vision.example.com
+   LUMIVISION_TRUSTED_ORIGINS=https://vision.example.com
    ```
 4. `docker compose up -d` and you're live.
 
