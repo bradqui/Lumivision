@@ -16,6 +16,8 @@ class GlassFormMixin:
         for field in self.fields.values():
             widget = field.widget
             css = widget.attrs.get("class", "")
+            if isinstance(widget, (forms.CheckboxSelectMultiple, forms.RadioSelect)):
+                continue  # rendered as custom pills, not text inputs
             if isinstance(widget, (forms.CheckboxInput,)):
                 widget.attrs["class"] = f"{css} lv-check".strip()
             elif isinstance(widget, (forms.Select, forms.SelectMultiple)):
@@ -74,14 +76,15 @@ class AssetForm(GlassFormMixin, forms.Form):
         help_text="Comma-separated, e.g. Travel, Home, Fitness",
     )
     boards = forms.ModelMultipleChoiceField(
-        queryset=Board.objects.none(), required=True
+        queryset=Board.objects.none(),
+        required=True,
+        widget=forms.CheckboxSelectMultiple,
     )
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
         self.fields["boards"].queryset = Board.visible_to(user)
-        self.fields["boards"].widget.attrs["class"] = "lv-input lv-select"
 
     def clean_file(self):
         f = self.cleaned_data.get("file")

@@ -180,8 +180,8 @@
             </div>
             <div class="lv-field">
                 <label>Boards</label>
-                {{ asset_form.boards }}
-                <p class="lv-help">Hold Ctrl / Cmd to select multiple boards.</p>
+                <div class="lv-board-picker">{{ asset_form.boards }}</div>
+                <p class="lv-help">Tap to toggle — an asset can live on several boards at once.</p>
             </div>
             <div style="display:flex; gap:0.7rem; justify-content:flex-end; margin-top:1.4rem;">
                 <button type="button" class="btn btn-ghost btn-sm" data-close-overlay>Cancel</button>

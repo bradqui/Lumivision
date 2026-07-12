@@ -311,7 +311,59 @@ a { color: var(--gold); }
     box-shadow: 0 0 0 3px rgba(126,116,212,0.18), 0 0 18px rgba(126,116,212,0.25);
 }
 .lv-select { accent-color: var(--purple); }
-select.lv-input option { background: #10121c; }
+select.lv-input option {
+    background-color: #10121c;
+    color: var(--text);
+}
+select.lv-input option:checked {
+    /* gradient trick: browsers honor background-image where they
+       override background-color on selected options */
+    background: linear-gradient(0deg, rgba(126,116,212,0.4), rgba(126,116,212,0.4)) #10121c;
+    color: #fff;
+}
+
+/* board picker — checkbox pills */
+.lv-board-picker > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.lv-board-picker > div > div { display: contents; }
+.lv-board-picker label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.42rem 1.05rem;
+    border-radius: 50px;
+    border: 1px solid var(--glass-border);
+    background: rgba(7, 8, 13, 0.6);
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s var(--ease);
+}
+.lv-board-picker label:hover {
+    color: #fff;
+    border-color: var(--glass-border-hi);
+    transform: translateY(-1px);
+}
+.lv-board-picker input[type="checkbox"] {
+    accent-color: var(--purple);
+    width: 0.95rem;
+    height: 0.95rem;
+    cursor: pointer;
+}
+.lv-board-picker label:has(input:checked) {
+    color: #0a0b12;
+    background: linear-gradient(90deg, var(--purple), var(--gold));
+    border-color: transparent;
+    box-shadow: 0 0 14px rgba(126, 116, 212, 0.45);
+}
+.lv-board-picker label:has(input:checked) input[type="checkbox"] {
+    accent-color: #0a0b12;
+}
 input[type="file"].lv-input { padding: 0.55rem 1rem; }
 input[type="file"]::file-selector-button {
     background: rgba(126,116,212,0.18);
