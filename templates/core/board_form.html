@@ -41,6 +41,11 @@
                 {{ form.visibility }}
                 <p class="lv-help">Private — only you · Registered Users — anyone signed in · Public — visible to the world (view-only)</p>
             </div>
+            <div class="lv-field">
+                <label for="{{ form.theme.id_for_label }}">Board theme</label>
+                {{ form.theme }}
+                <p class="lv-help">Forces this look for everyone viewing the board. "Viewer's own theme" leaves it up to each visitor.</p>
+            </div>
             {% if form.collaborators.field.queryset %}
             <div class="lv-field">
                 <label>Collaborators</label>

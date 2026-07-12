@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ board.name }} — Lumivision{% endblock %}
+{% block theme %}{% if board.theme %}theme-{{ board.theme }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block og_meta %}
 <meta property="og:title" content="{{ board.name }} — Lumivision">
 {% if board.description %}<meta property="og:description" content="{{ board.description|truncatechars:180 }}">{% endif %}
@@ -26,6 +27,9 @@
         </div>
         <div class="actions">
             <button class="btn btn-ghost btn-sm" data-copy="{{ board.get_absolute_url }}">Share board</button>
+            {% if can_edit_board and assets %}
+                <button class="btn btn-ghost btn-sm" id="lv-arrange-btn" type="button">Arrange</button>
+            {% endif %}
             {% if can_edit_board %}
                 <a class="btn btn-gold btn-sm" href="{% url 'board_edit' board.slug %}">Edit</a>
             {% endif %}

@@ -306,6 +306,8 @@
         document.querySelectorAll(".lv-card[data-lb]").forEach((card) => {
             card.addEventListener("click", (ev) => {
                 if (ev.target.closest(".lv-card-actions") || ev.target.closest("a")) return;
+                if (ev.target.closest(".lv-arrange-controls")) return;
+                if (masonry && masonry.classList.contains("arranging")) return;
                 openLightboxFromCard(card);
             });
         });
@@ -392,8 +394,57 @@
         });
     }
 
-    /* ---------------- drag reorder (board owner) ---------------- */
+    /* ---------------- reorder (board owner) ---------------- */
     const reorderUrl = masonry ? masonry.dataset.reorderUrl : null;
+
+    async function saveOrder() {
+        const order = Array.from(masonry.querySelectorAll(".lv-card")).map(
+            (c) => c.dataset.assetId
+        );
+        try {
+            await fetch(reorderUrl, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrftoken(), "Content-Type": "application/json" },
+                body: JSON.stringify({ order }),
+            });
+        } catch (e) {
+            toast("Could not save the new order.", "error");
+        }
+    }
+
+    /* Arrange mode: tap-friendly move controls (works without drag events) */
+    const arrangeBtn = document.getElementById("lv-arrange-btn");
+    if (arrangeBtn && masonry && reorderUrl) {
+        masonry.querySelectorAll(".lv-card").forEach((card) => {
+            const ctr = document.createElement("div");
+            ctr.className = "lv-arrange-controls";
+            ctr.innerHTML =
+                '<button type="button" class="mv-prev" title="Move earlier" aria-label="Move earlier">◀</button>' +
+                '<button type="button" class="mv-next" title="Move later" aria-label="Move later">▶</button>';
+            card.appendChild(ctr);
+        });
+        arrangeBtn.addEventListener("click", () => {
+            const on = masonry.classList.toggle("arranging");
+            arrangeBtn.textContent = on ? "Done" : "Arrange";
+            arrangeBtn.classList.toggle("btn-gold", on);
+            arrangeBtn.classList.toggle("btn-ghost", !on);
+        });
+        masonry.addEventListener("click", (ev) => {
+            const btn = ev.target.closest(".lv-arrange-controls button");
+            if (!btn || !masonry.classList.contains("arranging")) return;
+            ev.preventDefault();
+            ev.stopPropagation();
+            const card = btn.closest(".lv-card");
+            const cards = Array.from(masonry.querySelectorAll(".lv-card"));
+            const i = cards.indexOf(card);
+            if (btn.classList.contains("mv-prev") && i > 0) cards[i - 1].before(card);
+            else if (btn.classList.contains("mv-next") && i < cards.length - 1) cards[i + 1].after(card);
+            else return;
+            layoutMasonry();
+            saveOrder();
+        });
+    }
+
     if (masonry && reorderUrl) {
         let dragged = null;
         masonry.querySelectorAll(".lv-card").forEach((card) => {
@@ -426,18 +477,7 @@
                 if (from < to) card.after(dragged);
                 else card.before(dragged);
                 layoutMasonry();
-                const order = Array.from(masonry.querySelectorAll(".lv-card")).map(
-                    (c) => c.dataset.assetId
-                );
-                try {
-                    await fetch(reorderUrl, {
-                        method: "POST",
-                        headers: { "X-CSRFToken": csrftoken(), "Content-Type": "application/json" },
-                        body: JSON.stringify({ order }),
-                    });
-                } catch (e) {
-                    toast("Could not save the new order.", "error");
-                }
+                saveOrder();
             });
         });
     }

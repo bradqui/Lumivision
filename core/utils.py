@@ -1,7 +1,12 @@
-"""Helpers: video embed parsing, Open Graph link previews, image thumbnails."""
+"""Helpers: video embed parsing, Open Graph link previews, image thumbnails,
+video poster extraction."""
 
 import io
+import os
 import re
+import shutil
+import subprocess
+import tempfile
 from html.parser import HTMLParser
 from urllib.parse import urlparse
 
@@ -129,6 +134,41 @@ def fetch_og(url):
 
 
 THUMB_MAX = 900  # px, longest edge
+
+
+def extract_video_poster(video_path):
+    """Grab a frame from an uploaded video with ffmpeg. Returns a JPEG
+    ContentFile, or None when ffmpeg is unavailable or the video is unreadable
+    (the asset then simply shows the styled placeholder)."""
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        return None
+    fd, out_path = tempfile.mkstemp(suffix=".jpg")
+    os.close(fd)
+    try:
+        # Prefer a frame at 1s (skips black lead-ins); fall back to frame 0.
+        for seek in ("1", "0"):
+            result = subprocess.run(
+                [
+                    ffmpeg, "-y", "-ss", seek, "-i", video_path,
+                    "-frames:v", "1",
+                    "-vf", "scale='min(900,iw)':-2",
+                    "-q:v", "3", out_path,
+                ],
+                capture_output=True,
+                timeout=90,
+            )
+            if result.returncode == 0 and os.path.getsize(out_path) > 0:
+                with open(out_path, "rb") as f:
+                    return ContentFile(f.read(), name="poster.jpg")
+    except (subprocess.SubprocessError, OSError):
+        pass
+    finally:
+        try:
+            os.unlink(out_path)
+        except OSError:
+            pass
+    return None
 
 
 def make_thumbnail(uploaded_file, name_hint="thumb"):

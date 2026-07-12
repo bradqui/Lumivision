@@ -53,13 +53,16 @@
                 <td>{% if u.is_active %}<span style="color:var(--gold);">Active</span>{% else %}<span class="lv-muted">Deactivated</span>{% endif %}</td>
                 <td>
                     {% if u != user %}
-                    <form method="post" action="{% url 'user_update' u.pk %}" class="lv-inline-form" data-confirm="{% if u.is_active %}Deactivate {{ u.username }}? They will no longer be able to sign in.{% else %}Re-activate {{ u.username }}?{% endif %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="toggle_active">
-                        <button type="submit" class="btn {% if u.is_active %}btn-danger{% else %}btn-gold{% endif %} btn-sm">
-                            {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
-                        </button>
-                    </form>
+                    <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                        <a class="btn btn-ghost btn-sm" href="{% url 'user_set_password' u.pk %}">Set password</a>
+                        <form method="post" action="{% url 'user_update' u.pk %}" class="lv-inline-form" data-confirm="{% if u.is_active %}Deactivate {{ u.username }}? They will no longer be able to sign in.{% else %}Re-activate {{ u.username }}?{% endif %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle_active">
+                            <button type="submit" class="btn {% if u.is_active %}btn-danger{% else %}btn-gold{% endif %} btn-sm">
+                                {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+                            </button>
+                        </form>
+                    </div>
                     {% endif %}
                 </td>
             </tr>

@@ -12,13 +12,20 @@ animated transitions) inspired by the Luminatus visual language.
   - **Public** — viewable by anyone on the internet, always read-only
 - **Collaborators**: board owners pick specific members who may add content to their
   board — everyone else views only. Collaborators can also see private boards they're on
-- **Assets**: image uploads, video uploads (mp4/webm/mov), YouTube/Vimeo embeds, and rich links
-  with automatically fetched Open Graph previews
+- **Assets**: image uploads, video uploads (mp4/webm/mov) with automatic poster-frame
+  thumbnails (ffmpeg), YouTube/Vimeo embeds, and rich links with automatically fetched
+  Open Graph previews
+- **Themes**: 7 built-in themes (4 dark, 3 light). Each user picks an app-wide theme on
+  their Account page; board creators can force a theme on a board for every viewer.
+  Default: Purple & Gold (dark)
 - Assets can live on **multiple boards** at once and carry **categories** used to filter
   within a board (animated chip filtering)
 - **Masonry layout** with entrance animations, hover glow, and a **lightbox** viewer with
   keyboard/arrow navigation
-- **Drag & drop**: drop files anywhere on a board to upload; board owners drag cards to reorder
+- **Drag & drop**: drop files anywhere on a board to upload; board owners drag cards to
+  reorder — or use the touch-friendly **Arrange** mode on mobile
+- **Account self-service**: theme picker and password change; admins can set any user's
+  password and promote other accounts to Admin from the Users page
 - Every board (`/b/<slug>/`) and asset (`/a/<id>/`) has a **clean shareable URL**
 - **Invite-only registration**: admins generate unique URLs (`/join/<token>/`) with a role,
   optional expiry and usage limit

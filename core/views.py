@@ -3,7 +3,7 @@ from datetime import timedelta
 from functools import wraps
 
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Count, Max
@@ -15,9 +15,18 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import AssetEditForm, AssetForm, BoardForm, InviteForm, RegisterForm
+from .forms import (
+    AssetEditForm,
+    AssetForm,
+    BoardForm,
+    GlassPasswordChangeForm,
+    GlassSetPasswordForm,
+    InviteForm,
+    RegisterForm,
+)
 from .models import Asset, Board, BoardAsset, Category, Invite, User
-from .utils import fetch_og, make_thumbnail, parse_embed
+from .themes import THEMES, THEME_KEYS
+from .utils import extract_video_poster, fetch_og, make_thumbnail, parse_embed
 
 
 def member_required(view):
@@ -67,6 +76,45 @@ def join(request, token):
     else:
         form = RegisterForm()
     return render(request, "auth/register.html", {"form": form, "invite": invite})
+
+
+# --------------------------------------------------------------------- account
+
+
+@login_required
+def account(request):
+    if request.method == "POST":
+        theme = request.POST.get("theme", "")
+        if theme in THEME_KEYS:
+            request.user.theme = theme
+            request.user.save(update_fields=["theme"])
+            messages.success(request, "Theme updated.")
+        return redirect("account")
+    return render(request, "core/account.html", {"themes": THEMES})
+
+
+@login_required
+def password_change(request):
+    form = GlassPasswordChangeForm(request.user, request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        update_session_auth_hash(request, request.user)  # stay signed in
+        messages.success(request, "Your password has been changed.")
+        return redirect("account")
+    return render(request, "core/password_change.html", {"form": form})
+
+
+@admin_required
+def user_set_password(request, pk):
+    target = get_object_or_404(User, pk=pk)
+    form = GlassSetPasswordForm(target, request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, f"Password for {target.username} has been set.")
+        return redirect("manage_users")
+    return render(
+        request, "core/user_set_password.html", {"form": form, "target": target}
+    )
 
 
 # ---------------------------------------------------------------------- boards
@@ -275,6 +323,11 @@ def asset_create(request):
                   description=form.cleaned_data["description"])
     _apply_asset_media(asset, form)
     asset.save()
+    if asset.kind == Asset.Kind.VIDEO and not asset.thumb:
+        poster = extract_video_poster(asset.file.path)
+        if poster:
+            asset.thumb = poster
+            asset.save(update_fields=["thumb"])
     asset.categories.set(form.category_objects())
     _attach_to_boards(asset, form.cleaned_data["boards"])
     first = form.cleaned_data["boards"][0]
@@ -313,6 +366,11 @@ def asset_quick_upload(request, slug):
             if thumb:
                 asset.thumb = thumb
         asset.save()
+        if kind == Asset.Kind.VIDEO:
+            poster = extract_video_poster(asset.file.path)
+            if poster:
+                asset.thumb = poster
+                asset.save(update_fields=["thumb"])
         _attach_to_boards(asset, [board])
         created += 1
     return JsonResponse({"ok": True, "created": created, "errors": errors})
@@ -513,7 +571,9 @@ def user_update(request, pk):
         role = request.POST.get("role")
         if role in User.Role.values:
             user.role = role
-            user.save(update_fields=["role"])
+            # Admins also get Django-admin access; keep is_staff in sync.
+            user.is_staff = role == User.Role.ADMIN or user.is_superuser
+            user.save(update_fields=["role", "is_staff"])
             messages.success(request, f"{user.username} is now a {user.get_role_display()}.")
     elif action == "toggle_active":
         user.is_active = not user.is_active

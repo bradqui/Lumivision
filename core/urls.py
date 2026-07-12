@@ -13,6 +13,9 @@ urlpatterns = [
     ),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("join/<uuid:token>/", views.join, name="join"),
+    # Account
+    path("account/", views.account, name="account"),
+    path("account/password/", views.password_change, name="password_change"),
     # Boards
     path("boards/new/", views.board_create, name="board_create"),
     path("b/<slug:slug>/", views.board_detail, name="board_detail"),
@@ -36,4 +39,9 @@ urlpatterns = [
     path("manage/invites/<int:pk>/revoke/", views.invite_revoke, name="invite_revoke"),
     path("manage/users/", views.manage_users, name="manage_users"),
     path("manage/users/<int:pk>/update/", views.user_update, name="user_update"),
+    path(
+        "manage/users/<int:pk>/password/",
+        views.user_set_password,
+        name="user_set_password",
+    ),
 ]

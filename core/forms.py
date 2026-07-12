@@ -1,6 +1,10 @@
 from django import forms
 from django.conf import settings
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import (
+    PasswordChangeForm,
+    SetPasswordForm,
+    UserCreationForm,
+)
 
 from .models import Asset, Board, Category, Invite, User
 
@@ -34,6 +38,14 @@ class RegisterForm(GlassFormMixin, UserCreationForm):
         fields = ("username", "email")
 
 
+class GlassPasswordChangeForm(GlassFormMixin, PasswordChangeForm):
+    pass
+
+
+class GlassSetPasswordForm(GlassFormMixin, SetPasswordForm):
+    pass
+
+
 class BoardForm(GlassFormMixin, forms.ModelForm):
     class Meta:
         model = Board
@@ -43,6 +55,7 @@ class BoardForm(GlassFormMixin, forms.ModelForm):
             "banner_image",
             "logo_image",
             "visibility",
+            "theme",
             "collaborators",
         )
         widgets = {

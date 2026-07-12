@@ -4,18 +4,107 @@
    ============================================================ */
 
 :root {
-    --purple: #7E74D4;
-    --gold: #F2C478;
+    /* Theme primitives — every theme overrides (a subset of) these.
+       --a1/--a2 are the accent colors as R,G,B triplets so they can be
+       used inside rgba() at any alpha. */
+    --a1: 126, 116, 212;
+    --a2: 242, 196, 120;
+    --bg-rgb: 7, 8, 13;      /* page background */
+    --panel-rgb: 10, 12, 20; /* glass panel base */
     --dark-bg: #07080D;
     --text: #E0E2F0;
     --text-dim: #B0B5D1;
     --text-faint: #7d84a8;
-    --glass-bg: rgba(10, 12, 20, 0.65);
-    --glass-bg-solid: rgba(14, 16, 26, 0.92);
-    --glass-border: rgba(126, 116, 212, 0.2);
-    --glass-border-hi: rgba(126, 116, 212, 0.45);
+    --strong: #ffffff;       /* highest-contrast text */
+    --on-accent: #0a0b12;    /* text on accent-gradient fills */
+    --menu-bg: #10121c;      /* native dropdown option background */
     --danger: #e06a7a;
+
+    /* Derived */
+    --purple: rgb(var(--a1));
+    --gold: rgb(var(--a2));
+    --glass-bg: rgba(var(--panel-rgb), 0.65);
+    --glass-bg-solid: rgba(var(--panel-rgb), 0.94);
+    --glass-border: rgba(var(--a1), 0.2);
+    --glass-border-hi: rgba(var(--a1), 0.45);
     --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* ---------- themes ----------
+   Board pages force the board's theme for every viewer; otherwise the
+   user's own account theme applies. purple-gold-dark is the :root default. */
+body.theme-neon-cyan-dark {
+    --a1: 56, 189, 248;
+    --a2: 45, 212, 191;
+    --dark-bg: #04090F;
+    --bg-rgb: 4, 9, 15;
+    --panel-rgb: 8, 15, 23;
+    --menu-bg: #0b141d;
+    --text: #D7E6F2;
+    --text-dim: #9AB2C6;
+    --text-faint: #66809A;
+}
+body.theme-emerald-dark {
+    --a1: 52, 211, 153;
+    --a2: 227, 197, 95;
+    --dark-bg: #050B08;
+    --bg-rgb: 5, 11, 8;
+    --panel-rgb: 9, 17, 13;
+    --menu-bg: #0c1611;
+    --text: #DEEDE4;
+    --text-dim: #A3BDAF;
+    --text-faint: #6C8878;
+}
+body.theme-ember-dark {
+    --a1: 249, 115, 22;
+    --a2: 250, 204, 21;
+    --dark-bg: #0C0604;
+    --bg-rgb: 12, 6, 4;
+    --panel-rgb: 20, 11, 7;
+    --menu-bg: #1a120c;
+    --text: #F2E4DC;
+    --text-dim: #C7AC9E;
+    --text-faint: #94776B;
+}
+body.theme-ivory-light,
+body.theme-sky-light,
+body.theme-rose-light {
+    --strong: #191a2e;
+    --on-accent: #ffffff;
+    --menu-bg: #ffffff;
+    --panel-rgb: 255, 255, 255;
+    --glass-bg: rgba(var(--panel-rgb), 0.72);
+    --glass-bg-solid: rgba(var(--panel-rgb), 0.96);
+}
+body.theme-ivory-light {
+    --a1: 104, 88, 214;
+    --a2: 176, 124, 32;
+    --dark-bg: #F4F2EC;
+    --bg-rgb: 244, 242, 236;
+    --text: #33344a;
+    --text-dim: #5d5f7d;
+    --text-faint: #8d90ab;
+    --danger: #bb3a50;
+}
+body.theme-sky-light {
+    --a1: 37, 99, 235;
+    --a2: 13, 148, 136;
+    --dark-bg: #EEF3F9;
+    --bg-rgb: 238, 243, 249;
+    --text: #2b3348;
+    --text-dim: #56617d;
+    --text-faint: #8792ad;
+    --danger: #bb3a50;
+}
+body.theme-rose-light {
+    --a1: 219, 39, 119;
+    --a2: 147, 51, 234;
+    --dark-bg: #FAF3F5;
+    --bg-rgb: 250, 243, 245;
+    --text: #3a2e35;
+    --text-dim: #6d5a64;
+    --text-faint: #9c8791;
+    --danger: #bb3a50;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -47,8 +136,8 @@ a { color: var(--gold); }
     z-index: -3;
     overflow: hidden;
     background:
-        radial-gradient(ellipse at 20% -10%, rgba(126,116,212,0.12) 0%, transparent 55%),
-        radial-gradient(ellipse at 85% 110%, rgba(242,196,120,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 20% -10%, rgba(var(--a1),0.12) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 110%, rgba(var(--a2),0.07) 0%, transparent 55%),
         var(--dark-bg);
 }
 .aurora-blob {
@@ -60,19 +149,19 @@ a { color: var(--gold); }
 }
 .aurora-1 {
     width: 46vw; height: 46vw;
-    background: radial-gradient(circle, rgba(126,116,212,0.5), transparent 70%);
+    background: radial-gradient(circle, rgba(var(--a1),0.5), transparent 70%);
     top: -18vw; left: -10vw;
     animation: drift1 26s ease-in-out infinite alternate;
 }
 .aurora-2 {
     width: 38vw; height: 38vw;
-    background: radial-gradient(circle, rgba(242,196,120,0.28), transparent 70%);
+    background: radial-gradient(circle, rgba(var(--a2),0.28), transparent 70%);
     bottom: -14vw; right: -8vw;
     animation: drift2 32s ease-in-out infinite alternate;
 }
 .aurora-3 {
     width: 26vw; height: 26vw;
-    background: radial-gradient(circle, rgba(94, 84, 190, 0.35), transparent 70%);
+    background: radial-gradient(circle, rgba(var(--a1), 0.35), transparent 70%);
     top: 40vh; left: 55vw;
     animation: drift3 38s ease-in-out infinite alternate;
 }
@@ -109,7 +198,7 @@ a { color: var(--gold); }
     font-family: 'Syncopate', sans-serif;
     font-size: 1.05rem;
     letter-spacing: 3px;
-    color: #fff;
+    color: var(--strong);
     transition: filter 0.3s var(--ease);
 }
 .lv-logo em {
@@ -119,7 +208,7 @@ a { color: var(--gold); }
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
-.lv-logo-mark { filter: drop-shadow(0 0 8px rgba(242,196,120,0.35)); transition: transform 0.5s var(--ease); }
+.lv-logo-mark { filter: drop-shadow(0 0 8px rgba(var(--a2),0.35)); transition: transform 0.5s var(--ease); }
 .lv-logo:hover .lv-logo-mark { transform: rotate(90deg) scale(1.08); }
 
 .lv-nav-right { display: flex; align-items: center; gap: 1.4rem; }
@@ -142,7 +231,7 @@ a { color: var(--gold); }
     background: linear-gradient(90deg, var(--purple), var(--gold));
     transition: width 0.4s var(--ease);
 }
-.lv-nav-link:hover { color: #fff; }
+.lv-nav-link:hover { color: var(--strong); }
 .lv-nav-link:hover::after, .lv-nav-link.active::after { width: 100%; }
 .lv-linkbtn { background: none; border: none; cursor: pointer; font-family: inherit; }
 .lv-inline-form { display: inline; }
@@ -154,7 +243,7 @@ a { color: var(--gold); }
     padding: 0.3rem 0.85rem 0.3rem 0.35rem;
     border: 1px solid var(--glass-border);
     border-radius: 50px;
-    background: rgba(126,116,212,0.08);
+    background: rgba(var(--a1),0.08);
 }
 .lv-avatar {
     width: 30px; height: 30px;
@@ -162,7 +251,7 @@ a { color: var(--gold); }
     display: grid; place-items: center;
     font-weight: 700;
     font-size: 0.85rem;
-    color: #0a0b12;
+    color: var(--on-accent);
     background: linear-gradient(135deg, var(--purple), var(--gold));
 }
 .lv-username { font-size: 0.85rem; font-weight: 600; }
@@ -175,7 +264,7 @@ a { color: var(--gold); }
     border: 1px solid var(--glass-border-hi);
     color: var(--text-dim);
 }
-.lv-role-admin { color: var(--gold); border-color: rgba(242,196,120,0.5); }
+.lv-role-admin { color: var(--gold); border-color: rgba(var(--a2),0.5); }
 
 /* ---------- layout ---------- */
 .lv-main {
@@ -203,7 +292,7 @@ a { color: var(--gold); }
 }
 .lv-page-head h1 {
     font-size: 1.9rem;
-    background: linear-gradient(to right, #fff, var(--gold));
+    background: linear-gradient(to right, var(--strong), var(--gold));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -232,21 +321,21 @@ a { color: var(--gold); }
 }
 .btn-primary {
     background: transparent;
-    color: #fff;
+    color: var(--strong);
     border-color: var(--purple);
-    box-shadow: 0 0 15px rgba(126, 116, 212, 0.3);
+    box-shadow: 0 0 15px rgba(var(--a1), 0.3);
 }
 .btn-primary::before {
     content: '';
     position: absolute;
     top: 0; left: 0; width: 0; height: 100%;
-    background: linear-gradient(90deg, var(--purple), rgba(126, 116, 212, 0.5));
+    background: linear-gradient(90deg, var(--purple), rgba(var(--a1), 0.5));
     z-index: -1;
     transition: width 0.4s var(--ease);
 }
 .btn-primary:hover::before { width: 100%; }
 .btn-primary:hover {
-    box-shadow: 0 0 25px rgba(126, 116, 212, 0.8);
+    box-shadow: 0 0 25px rgba(var(--a1), 0.8);
     transform: translateY(-2px);
 }
 .btn-gold {
@@ -255,8 +344,8 @@ a { color: var(--gold); }
     border-color: var(--gold);
 }
 .btn-gold:hover {
-    background: rgba(242, 196, 120, 0.1);
-    box-shadow: 0 0 20px rgba(242, 196, 120, 0.5);
+    background: rgba(var(--a2), 0.1);
+    box-shadow: 0 0 20px rgba(var(--a2), 0.5);
     transform: translateY(-2px);
 }
 .btn-ghost {
@@ -264,7 +353,7 @@ a { color: var(--gold); }
     color: var(--text-dim);
     border-color: var(--glass-border);
 }
-.btn-ghost:hover { color: #fff; border-color: var(--glass-border-hi); }
+.btn-ghost:hover { color: var(--strong); border-color: var(--glass-border-hi); }
 .btn-danger {
     background: transparent;
     color: var(--danger);
@@ -297,7 +386,7 @@ a { color: var(--gold); }
 .lv-input {
     width: 100%;
     padding: 0.75rem 1rem;
-    background: rgba(7, 8, 13, 0.6);
+    background: rgba(var(--bg-rgb), 0.6);
     border: 1px solid var(--glass-border);
     border-radius: 10px;
     color: var(--text);
@@ -308,18 +397,18 @@ a { color: var(--gold); }
 .lv-input:focus {
     outline: none;
     border-color: var(--purple);
-    box-shadow: 0 0 0 3px rgba(126,116,212,0.18), 0 0 18px rgba(126,116,212,0.25);
+    box-shadow: 0 0 0 3px rgba(var(--a1),0.18), 0 0 18px rgba(var(--a1),0.25);
 }
 .lv-select { accent-color: var(--purple); }
 select.lv-input option {
-    background-color: #10121c;
+    background-color: var(--menu-bg);
     color: var(--text);
 }
 select.lv-input option:checked {
     /* gradient trick: browsers honor background-image where they
        override background-color on selected options */
-    background: linear-gradient(0deg, rgba(126,116,212,0.4), rgba(126,116,212,0.4)) #10121c;
-    color: #fff;
+    background: linear-gradient(0deg, rgba(var(--a1),0.4), rgba(var(--a1),0.4)) var(--menu-bg);
+    color: var(--strong);
 }
 
 /* board picker — checkbox pills */
@@ -336,7 +425,7 @@ select.lv-input option:checked {
     padding: 0.42rem 1.05rem;
     border-radius: 50px;
     border: 1px solid var(--glass-border);
-    background: rgba(7, 8, 13, 0.6);
+    background: rgba(var(--bg-rgb), 0.6);
     color: var(--text);
     font-size: 0.82rem;
     font-weight: 600;
@@ -345,7 +434,7 @@ select.lv-input option:checked {
     transition: all 0.3s var(--ease);
 }
 .lv-board-picker label:hover {
-    color: #fff;
+    color: var(--strong);
     border-color: var(--glass-border-hi);
     transform: translateY(-1px);
 }
@@ -356,17 +445,17 @@ select.lv-input option:checked {
     cursor: pointer;
 }
 .lv-board-picker label:has(input:checked) {
-    color: #0a0b12;
+    color: var(--on-accent);
     background: linear-gradient(90deg, var(--purple), var(--gold));
     border-color: transparent;
-    box-shadow: 0 0 14px rgba(126, 116, 212, 0.45);
+    box-shadow: 0 0 14px rgba(var(--a1), 0.45);
 }
 .lv-board-picker label:has(input:checked) input[type="checkbox"] {
-    accent-color: #0a0b12;
+    accent-color: var(--on-accent);
 }
 input[type="file"].lv-input { padding: 0.55rem 1rem; }
 input[type="file"]::file-selector-button {
-    background: rgba(126,116,212,0.18);
+    background: rgba(var(--a1),0.18);
     color: var(--text);
     border: 1px solid var(--glass-border-hi);
     border-radius: 8px;
@@ -376,7 +465,7 @@ input[type="file"]::file-selector-button {
     cursor: pointer;
     transition: background 0.3s ease;
 }
-input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.35); }
+input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35); }
 .lv-help { font-size: 0.78rem; color: var(--text-faint); margin-top: 0.3rem; }
 .lv-errors { color: var(--danger); font-size: 0.85rem; margin-top: 0.35rem; }
 .lv-form-error {
@@ -427,7 +516,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
 .lv-board-card:hover {
     transform: translateY(-8px);
     border-color: var(--gold);
-    box-shadow: 0 14px 34px rgba(0,0,0,0.55), 0 0 22px rgba(242,196,120,0.18);
+    box-shadow: 0 14px 34px rgba(0,0,0,0.55), 0 0 22px rgba(var(--a2),0.18);
 }
 .lv-board-cover {
     position: absolute;
@@ -441,7 +530,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(7,8,13,0.92) 0%, rgba(7,8,13,0.15) 55%, transparent 100%);
+    background: linear-gradient(to top, rgba(var(--bg-rgb),0.92) 0%, rgba(var(--bg-rgb),0.15) 55%, transparent 100%);
 }
 .lv-board-noimg {
     position: absolute;
@@ -450,13 +539,13 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     place-items: center;
     padding: 1.5rem;
     background:
-        radial-gradient(circle at 30% 20%, rgba(126,116,212,0.22), transparent 60%),
-        radial-gradient(circle at 75% 85%, rgba(242,196,120,0.12), transparent 55%);
+        radial-gradient(circle at 30% 20%, rgba(var(--a1),0.22), transparent 60%),
+        radial-gradient(circle at 75% 85%, rgba(var(--a2),0.12), transparent 55%);
 }
 .lv-board-noimg h3 {
     font-size: 1.15rem;
     text-align: center;
-    background: linear-gradient(to right, #fff, var(--gold));
+    background: linear-gradient(to right, var(--strong), var(--gold));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -502,7 +591,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     font-size: 0.9rem;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    color: #fff;
+    color: var(--strong);
     text-shadow: 0 2px 10px rgba(0,0,0,0.8);
 }
 .lv-board-meta .count { font-size: 0.75rem; color: var(--text-dim); }
@@ -513,13 +602,13 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     padding: 0.2rem 0.6rem;
     border-radius: 20px;
     border: 1px solid var(--glass-border-hi);
-    background: rgba(7,8,13,0.65);
+    background: rgba(var(--bg-rgb),0.65);
     color: var(--text-dim);
     backdrop-filter: blur(6px);
     white-space: nowrap;
 }
-.lv-vis-public { color: var(--gold); border-color: rgba(242,196,120,0.55); }
-.lv-vis-private { color: var(--purple); border-color: rgba(126,116,212,0.6); }
+.lv-vis-public { color: var(--gold); border-color: rgba(var(--a2),0.55); }
+.lv-vis-private { color: var(--purple); border-color: rgba(var(--a1),0.6); }
 
 .lv-board-new {
     display: grid;
@@ -533,7 +622,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     letter-spacing: 1.5px;
     text-transform: uppercase;
     transition: all 0.4s var(--ease);
-    background: rgba(126,116,212,0.04);
+    background: rgba(var(--a1),0.04);
 }
 .lv-board-new .plus {
     display: block;
@@ -548,8 +637,8 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
 }
 .lv-board-new:hover {
     border-color: var(--gold);
-    color: #fff;
-    box-shadow: 0 0 24px rgba(242,196,120,0.15) inset, 0 0 24px rgba(126,116,212,0.2);
+    color: var(--strong);
+    box-shadow: 0 0 24px rgba(var(--a2),0.15) inset, 0 0 24px rgba(var(--a1),0.2);
     transform: translateY(-6px);
 }
 
@@ -564,8 +653,8 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     display: flex;
     align-items: flex-end;
     background:
-        radial-gradient(circle at 20% 10%, rgba(126,116,212,0.25), transparent 60%),
-        radial-gradient(circle at 85% 90%, rgba(242,196,120,0.14), transparent 55%),
+        radial-gradient(circle at 20% 10%, rgba(var(--a1),0.25), transparent 60%),
+        radial-gradient(circle at 85% 90%, rgba(var(--a2),0.14), transparent 55%),
         var(--glass-bg);
 }
 .lv-board-hero .cover {
@@ -578,7 +667,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(7,8,13,0.94) 8%, rgba(7,8,13,0.35) 60%, rgba(7,8,13,0.15) 100%);
+    background: linear-gradient(to top, rgba(var(--bg-rgb),0.94) 8%, rgba(var(--bg-rgb),0.35) 60%, rgba(var(--bg-rgb),0.15) 100%);
 }
 .lv-board-hero .inner {
     position: relative;
@@ -594,7 +683,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
 .lv-board-hero h1 {
     font-size: 1.7rem;
     text-shadow: 0 2px 14px rgba(0,0,0,0.7);
-    background: linear-gradient(to right, #fff, var(--gold));
+    background: linear-gradient(to right, var(--strong), var(--gold));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -613,7 +702,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     padding: 0.38rem 1.05rem;
     border-radius: 50px;
     border: 1px solid var(--glass-border);
-    background: rgba(10,12,20,0.5);
+    background: rgba(var(--panel-rgb),0.5);
     color: var(--text-dim);
     font-size: 0.78rem;
     font-weight: 600;
@@ -622,12 +711,12 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     transition: all 0.3s var(--ease);
     font-family: inherit;
 }
-.lv-chip:hover { color: #fff; border-color: var(--glass-border-hi); transform: translateY(-1px); }
+.lv-chip:hover { color: var(--strong); border-color: var(--glass-border-hi); transform: translateY(-1px); }
 .lv-chip.active {
-    color: #0a0b12;
+    color: var(--on-accent);
     background: linear-gradient(90deg, var(--purple), var(--gold));
     border-color: transparent;
-    box-shadow: 0 0 16px rgba(126,116,212,0.5);
+    box-shadow: 0 0 16px rgba(var(--a1),0.5);
 }
 
 /* ---------- masonry asset grid ---------- */
@@ -653,13 +742,13 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
 .lv-card:hover {
     transform: translateY(-6px);
     border-color: var(--glass-border-hi);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.5), 0 0 18px rgba(126,116,212,0.2);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5), 0 0 18px rgba(var(--a1),0.2);
 }
 .lv-card.filtered-out { opacity: 0; transform: scale(0.92); pointer-events: none; position: absolute; visibility: hidden; }
 .lv-card.dragging { opacity: 0.45; border-color: var(--gold); }
-.lv-card.drag-over { border-color: var(--gold); box-shadow: 0 0 20px rgba(242,196,120,0.4); }
+.lv-card.drag-over { border-color: var(--gold); box-shadow: 0 0 20px rgba(var(--a2),0.4); }
 
-.lv-card-media { position: relative; width: 100%; display: block; background: #0c0e17; }
+.lv-card-media { position: relative; width: 100%; display: block; background: rgb(var(--panel-rgb)); }
 .lv-card-media img { width: 100%; display: block; transition: transform 0.6s var(--ease); }
 .lv-card:hover .lv-card-media img { transform: scale(1.045); }
 .lv-card-media .play-badge {
@@ -672,8 +761,8 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     width: 54px; height: 54px;
     border-radius: 50%;
     display: grid; place-items: center;
-    background: rgba(7,8,13,0.55);
-    border: 1px solid rgba(242,196,120,0.6);
+    background: rgba(var(--bg-rgb),0.55);
+    border: 1px solid rgba(var(--a2),0.6);
     backdrop-filter: blur(4px);
     color: var(--gold);
     font-size: 1.1rem;
@@ -682,15 +771,15 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
 }
 .lv-card:hover .play-badge span {
     transform: scale(1.12);
-    box-shadow: 0 0 24px rgba(242,196,120,0.5);
+    box-shadow: 0 0 24px rgba(var(--a2),0.5);
 }
 .lv-media-placeholder {
     aspect-ratio: 16/10;
     display: grid;
     place-items: center;
     background:
-        radial-gradient(circle at 30% 25%, rgba(126,116,212,0.28), transparent 60%),
-        radial-gradient(circle at 75% 80%, rgba(242,196,120,0.14), transparent 55%);
+        radial-gradient(circle at 30% 25%, rgba(var(--a1),0.28), transparent 60%),
+        radial-gradient(circle at 75% 80%, rgba(var(--a2),0.14), transparent 55%);
 }
 .lv-media-placeholder .glyph { font-size: 2rem; opacity: 0.85; }
 
@@ -698,7 +787,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
 .lv-card-title {
     font-weight: 600;
     font-size: 0.92rem;
-    color: #fff;
+    color: var(--strong);
     overflow-wrap: anywhere;
 }
 .lv-card-desc {
@@ -717,9 +806,9 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     letter-spacing: 1px;
     padding: 0.12rem 0.55rem;
     border-radius: 20px;
-    border: 1px solid rgba(126,116,212,0.45);
+    border: 1px solid rgba(var(--a1),0.45);
     color: var(--purple);
-    background: rgba(126,116,212,0.08);
+    background: rgba(var(--a1),0.08);
 }
 .lv-card-foot {
     display: flex;
@@ -727,7 +816,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     justify-content: space-between;
     margin-top: 0.6rem;
     padding-top: 0.6rem;
-    border-top: 1px solid rgba(126,116,212,0.12);
+    border-top: 1px solid rgba(var(--a1),0.12);
     font-size: 0.72rem;
     color: var(--text-faint);
 }
@@ -743,7 +832,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     transition: color 0.25s ease, background 0.25s ease, transform 0.25s ease;
     line-height: 1;
 }
-.lv-iconbtn:hover { color: var(--gold); background: rgba(242,196,120,0.08); transform: scale(1.15); }
+.lv-iconbtn:hover { color: var(--gold); background: rgba(var(--a2),0.08); transform: scale(1.15); }
 .lv-iconbtn.danger:hover { color: var(--danger); background: rgba(224,106,122,0.1); }
 .lv-link-domain { color: var(--gold); font-size: 0.72rem; letter-spacing: 0.5px; }
 
@@ -781,16 +870,16 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     place-items: center;
     font-size: 1.9rem;
     line-height: 1;
-    color: #0a0b12;
+    color: var(--on-accent);
     background: linear-gradient(135deg, var(--purple), var(--gold));
-    box-shadow: 0 8px 26px rgba(0,0,0,0.5), 0 0 22px rgba(126,116,212,0.55);
+    box-shadow: 0 8px 26px rgba(0,0,0,0.5), 0 0 22px rgba(var(--a1),0.55);
     cursor: pointer;
     z-index: 900;
     transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
 }
 .lv-fab:hover {
     transform: scale(1.1) rotate(90deg);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 34px rgba(242,196,120,0.7);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 34px rgba(var(--a2),0.7);
 }
 
 /* ---------- modal / lightbox ---------- */
@@ -801,7 +890,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     display: grid;
     place-items: center;
     padding: 2rem;
-    background: rgba(4, 5, 9, 0.82);
+    background: rgba(var(--bg-rgb), 0.82);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     opacity: 0;
@@ -820,7 +909,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     padding: 2rem;
     transform: translateY(26px) scale(0.97);
     transition: transform 0.4s var(--ease);
-    box-shadow: 0 24px 70px rgba(0,0,0,0.65), 0 0 40px rgba(126,116,212,0.15);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.65), 0 0 40px rgba(var(--a1),0.15);
 }
 .lv-overlay.open .lv-modal { transform: translateY(0) scale(1); }
 .lv-modal h2 { font-size: 1rem; margin-bottom: 1.4rem; color: var(--purple); }
@@ -842,9 +931,9 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     cursor: pointer;
     transition: all 0.3s var(--ease);
 }
-.lv-tab:hover { color: #fff; border-color: var(--glass-border-hi); }
+.lv-tab:hover { color: var(--strong); border-color: var(--glass-border-hi); }
 .lv-tab.active {
-    color: #0a0b12;
+    color: var(--on-accent);
     background: linear-gradient(90deg, var(--purple), var(--gold));
     border-color: transparent;
 }
@@ -884,7 +973,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     max-width: 100%;
     max-height: 74vh;
     border-radius: 12px;
-    box-shadow: 0 20px 70px rgba(0,0,0,0.8), 0 0 46px rgba(126,116,212,0.22);
+    box-shadow: 0 20px 70px rgba(0,0,0,0.8), 0 0 46px rgba(var(--a1),0.22);
 }
 .lv-lightbox-media video {
     max-width: 100%;
@@ -909,7 +998,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     padding: 1rem 0.3rem 0;
     color: var(--text-dim);
 }
-.lv-lightbox-caption .t { font-weight: 600; color: #fff; font-size: 1rem; }
+.lv-lightbox-caption .t { font-weight: 600; color: var(--strong); font-size: 1rem; }
 .lv-lightbox-caption .d { font-size: 0.85rem; }
 .lv-lightbox-nav {
     position: absolute;
@@ -918,9 +1007,9 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     width: 52px; height: 52px;
     border-radius: 50%;
     border: 1px solid var(--glass-border-hi);
-    background: rgba(7,8,13,0.6);
+    background: rgba(var(--bg-rgb),0.6);
     backdrop-filter: blur(6px);
-    color: #fff;
+    color: var(--strong);
     font-size: 1.3rem;
     cursor: pointer;
     display: grid;
@@ -928,7 +1017,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     transition: all 0.3s var(--ease);
     z-index: 5;
 }
-.lv-lightbox-nav:hover { border-color: var(--gold); box-shadow: 0 0 18px rgba(242,196,120,0.4); transform: translateY(-50%) scale(1.08); }
+.lv-lightbox-nav:hover { border-color: var(--gold); box-shadow: 0 0 18px rgba(var(--a2),0.4); transform: translateY(-50%) scale(1.08); }
 .lv-lightbox-prev { left: -70px; }
 .lv-lightbox-next { right: -70px; }
 @media (max-width: 1330px) {
@@ -941,8 +1030,8 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     width: 42px; height: 42px;
     border-radius: 50%;
     border: 1px solid var(--glass-border-hi);
-    background: rgba(7,8,13,0.85);
-    color: #fff;
+    background: rgba(var(--bg-rgb),0.85);
+    color: var(--strong);
     font-size: 1.05rem;
     cursor: pointer;
     z-index: 6;
@@ -957,7 +1046,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     z-index: 1300;
     display: none;
     place-items: center;
-    background: rgba(7,8,13,0.85);
+    background: rgba(var(--bg-rgb),0.85);
     backdrop-filter: blur(8px);
 }
 .lv-dropzone.active { display: grid; }
@@ -971,12 +1060,12 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     font-family: 'Syncopate', sans-serif;
     letter-spacing: 2px;
     text-transform: uppercase;
-    box-shadow: 0 0 60px rgba(242,196,120,0.25) inset, 0 0 40px rgba(126,116,212,0.3);
+    box-shadow: 0 0 60px rgba(var(--a2),0.25) inset, 0 0 40px rgba(var(--a1),0.3);
     animation: pulseGlow 1.6s ease-in-out infinite alternate;
 }
 @keyframes pulseGlow {
-    from { box-shadow: 0 0 40px rgba(242,196,120,0.15) inset, 0 0 25px rgba(126,116,212,0.2); }
-    to { box-shadow: 0 0 70px rgba(242,196,120,0.35) inset, 0 0 50px rgba(126,116,212,0.45); }
+    from { box-shadow: 0 0 40px rgba(var(--a2),0.15) inset, 0 0 25px rgba(var(--a1),0.2); }
+    to { box-shadow: 0 0 70px rgba(var(--a2),0.35) inset, 0 0 50px rgba(var(--a1),0.45); }
 }
 .lv-upload-progress {
     position: fixed;
@@ -1042,16 +1131,16 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
 }
 .lv-table td {
     padding: 0.85rem 0.9rem;
-    border-bottom: 1px solid rgba(126,116,212,0.1);
+    border-bottom: 1px solid rgba(var(--a1),0.1);
     vertical-align: middle;
 }
 .lv-table tr { transition: background 0.25s ease; }
-.lv-table tbody tr:hover { background: rgba(126,116,212,0.05); }
+.lv-table tbody tr:hover { background: rgba(var(--a1),0.05); }
 .lv-invite-url {
     font-family: monospace;
     font-size: 0.78rem;
     color: var(--gold);
-    background: rgba(7,8,13,0.6);
+    background: rgba(var(--bg-rgb),0.6);
     padding: 0.3rem 0.7rem;
     border-radius: 8px;
     border: 1px solid var(--glass-border);
@@ -1064,6 +1153,92 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
 }
 .lv-muted { color: var(--text-faint); }
 .lv-badge-off { opacity: 0.45; }
+
+/* ---------- arrange mode (touch-friendly reorder) ---------- */
+.lv-arrange-controls {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    background: rgba(var(--bg-rgb), 0.55);
+    backdrop-filter: blur(2px);
+    border-radius: 14px;
+}
+.lv-masonry.arranging .lv-arrange-controls { display: flex; }
+.lv-masonry.arranging .lv-card { cursor: default; }
+.lv-arrange-controls button {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border-hi);
+    background: var(--glass-bg-solid);
+    color: var(--strong);
+    font-size: 1.05rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all 0.25s var(--ease);
+    touch-action: manipulation;
+}
+.lv-arrange-controls button:hover,
+.lv-arrange-controls button:active {
+    border-color: var(--gold);
+    box-shadow: 0 0 16px rgba(var(--a2), 0.45);
+    transform: scale(1.1);
+}
+
+/* ---------- theme picker (account page) ---------- */
+.lv-theme-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+.lv-theme-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 1.05rem 0.45rem 0.5rem;
+    border-radius: 50px;
+    border: 1px solid var(--glass-border);
+    background: rgba(var(--bg-rgb), 0.4);
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s var(--ease);
+}
+.lv-theme-pill:hover {
+    color: var(--strong);
+    border-color: var(--glass-border-hi);
+    transform: translateY(-1px);
+}
+.lv-theme-pill input { position: absolute; opacity: 0; pointer-events: none; }
+.lv-theme-pill .sw {
+    width: 46px;
+    height: 27px;
+    border-radius: 50px;
+    border: 1px solid var(--glass-border-hi);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex: none;
+}
+.lv-theme-pill .sw i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: block;
+}
+.lv-theme-pill:has(input:checked) {
+    border-color: var(--gold);
+    box-shadow: 0 0 16px rgba(var(--a2), 0.35);
+    color: var(--strong);
+}
 
 /* ---------- responsive ---------- */
 @media (max-width: 1024px) {

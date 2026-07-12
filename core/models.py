@@ -8,6 +8,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
+from .themes import DEFAULT_THEME, THEME_CHOICES
+
 
 class User(AbstractUser):
     class Role(models.TextChoices):
@@ -16,6 +18,12 @@ class User(AbstractUser):
         VIEWER = "viewer", "Viewer"
 
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.MEMBER)
+    theme = models.CharField(
+        max_length=30,
+        choices=THEME_CHOICES,
+        default=DEFAULT_THEME,
+        help_text="Look and feel of Lumivision for this user",
+    )
 
     @property
     def is_admin_role(self):
@@ -91,6 +99,13 @@ class Board(models.Model):
     )
     visibility = models.CharField(
         max_length=12, choices=Visibility.choices, default=Visibility.REGISTERED
+    )
+    theme = models.CharField(
+        max_length=30,
+        choices=[("", "Viewer's own theme")] + THEME_CHOICES,
+        blank=True,
+        default="",
+        help_text="Forces a theme for everyone viewing this board",
     )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="boards"
