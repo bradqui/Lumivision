@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import AssetForm, BoardForm, InviteForm, RegisterForm
+from .forms import AssetEditForm, AssetForm, BoardForm, InviteForm, RegisterForm
 from .models import Asset, Board, BoardAsset, Category, Invite, User
 from .utils import fetch_og, make_thumbnail, parse_embed
 
@@ -328,6 +328,59 @@ def asset_detail(request, pk):
             "user_can_delete": asset.can_delete(request.user),
         },
     )
+
+
+@login_required
+def asset_edit(request, pk):
+    asset = get_object_or_404(Asset, pk=pk)
+    if not asset.can_delete(request.user):
+        return HttpResponseForbidden("You can only edit assets you posted.")
+    if request.method == "POST":
+        form = AssetEditForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            asset.title = form.cleaned_data["title"]
+            asset.description = form.cleaned_data["description"]
+            custom = form.cleaned_data.get("custom_thumb")
+            if custom:
+                thumb = make_thumbnail(custom, name_hint="t")
+                if thumb:
+                    if asset.thumb:
+                        asset.thumb.delete(save=False)
+                    asset.thumb = thumb
+            asset.save()
+            asset.categories.set(form.category_objects())
+            # Sync board membership — but only for boards this user can see,
+            # so an unrelated private board's placement is never touched.
+            visible = set(
+                Board.visible_to(request.user).values_list("pk", flat=True)
+            )
+            current = set(asset.boards.values_list("pk", flat=True))
+            chosen = {b.pk for b in form.cleaned_data["boards"]}
+            BoardAsset.objects.filter(
+                asset=asset, board_id__in=(current & visible) - chosen
+            ).delete()
+            _attach_to_boards(
+                asset,
+                [b for b in form.cleaned_data["boards"] if b.pk not in current],
+            )
+            messages.success(request, "Asset updated.")
+            next_url = request.POST.get("next", "")
+            if next_url.startswith("/"):
+                return redirect(next_url)
+            return redirect(asset)
+    else:
+        form = AssetEditForm(
+            user=request.user,
+            initial={
+                "title": asset.title,
+                "description": asset.description,
+                "categories": ", ".join(
+                    asset.categories.values_list("name", flat=True)
+                ),
+                "boards": list(asset.boards.values_list("pk", flat=True)),
+            },
+        )
+    return render(request, "core/asset_form.html", {"form": form, "asset": asset})
 
 
 @require_POST

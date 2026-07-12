@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ asset.display_title }} — Lumivision{% endblock %}
+{% block content %}
+<div class="lv-auth-wrap">
+    <div class="lv-panel lv-auth-card" style="width: min(560px, 100%); text-align: left;">
+        <h1 style="text-align:center;">Edit Asset</h1>
+        <p class="sub" style="text-align:center;">{{ asset.get_kind_display }} · posted {{ asset.created_at|date:"M j, Y" }}</p>
+
+        {% if asset.preview_url %}
+        <div style="text-align:center; margin-bottom:1.5rem;">
+            <img src="{{ asset.preview_url }}" alt="" style="max-width:100%; max-height:220px; border-radius:12px; border:1px solid var(--glass-border);">
+        </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            <div class="lv-form-error">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <div class="lv-field">
+                <label for="{{ form.title.id_for_label }}">Title</label>
+                {{ form.title }}
+                {% if form.title.errors %}<div class="lv-errors">{{ form.title.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="lv-field">
+                <label for="{{ form.description.id_for_label }}">Description</label>
+                {{ form.description }}
+            </div>
+            <div class="lv-field">
+                <label for="{{ form.categories.id_for_label }}">Categories</label>
+                {{ form.categories }}
+                <p class="lv-help">Comma-separated — used to filter within a board.</p>
+                {% if form.categories.errors %}<div class="lv-errors">{{ form.categories.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="lv-field">
+                <label>Boards</label>
+                <div class="lv-board-picker">{{ form.boards }}</div>
+                <p class="lv-help">Tap to toggle — an asset can live on several boards at once.</p>
+                {% if form.boards.errors %}<div class="lv-errors">{{ form.boards.errors.0 }}</div>{% endif %}
+            </div>
+            {% if asset.kind == 'video' or asset.kind == 'image' %}
+            <div class="lv-field">
+                <label for="{{ form.custom_thumb.id_for_label }}">Replace preview image <span style="text-transform:none;">(optional)</span></label>
+                {{ form.custom_thumb }}
+                {% if form.custom_thumb.errors %}<div class="lv-errors">{{ form.custom_thumb.errors.0 }}</div>{% endif %}
+            </div>
+            {% endif %}
+            <div style="display:flex; gap:0.7rem; justify-content:flex-end; margin-top:1.6rem;">
+                <a class="btn btn-ghost btn-sm" href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{{ asset.get_absolute_url }}{% endif %}">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-sm">Save changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

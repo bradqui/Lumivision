@@ -28,6 +28,7 @@ urlpatterns = [
     # Assets
     path("assets/new/", views.asset_create, name="asset_create"),
     path("a/<int:pk>/", views.asset_detail, name="asset_detail"),
+    path("a/<int:pk>/edit/", views.asset_edit, name="asset_edit"),
     path("a/<int:pk>/delete/", views.asset_delete, name="asset_delete"),
     path("api/og-preview/", views.og_preview, name="og_preview"),
     # Management

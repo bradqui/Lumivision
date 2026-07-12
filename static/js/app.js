@@ -50,12 +50,17 @@
     /* ---------------- masonry ---------------- */
     const masonry = document.querySelector(".lv-masonry");
     function layoutCard(card) {
-        const rowH = 8, gap = 0;
-        const content = card.firstElementChild ? card : null;
-        const h = card.querySelector(".lv-card-inner")
-            ? card.querySelector(".lv-card-inner").getBoundingClientRect().height
-            : card.scrollHeight;
-        card.style.gridRowEnd = "span " + Math.max(10, Math.ceil((h + gap) / rowH));
+        const rowH = 8;
+        const inner = card.querySelector(".lv-card-inner");
+        const h = inner ? inner.getBoundingClientRect().height : card.scrollHeight;
+        // The card's border and bottom margin sit inside its grid area —
+        // they must be part of the span or the footer gets clipped.
+        const style = getComputedStyle(card);
+        const extra =
+            (parseFloat(style.marginBottom) || 0) +
+            (parseFloat(style.borderTopWidth) || 0) +
+            (parseFloat(style.borderBottomWidth) || 0);
+        card.style.gridRowEnd = "span " + Math.max(10, Math.ceil((h + extra) / rowH));
     }
     function layoutMasonry() {
         if (!masonry) return;

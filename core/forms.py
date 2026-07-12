@@ -119,15 +119,44 @@ class AssetForm(GlassFormMixin, forms.Form):
         return data
 
     def category_objects(self):
-        names = [
-            n.strip()
-            for n in (self.cleaned_data.get("categories") or "").split(",")
-            if n.strip()
-        ]
-        objs = []
-        for name in names[:10]:
-            obj = Category.objects.filter(name__iexact=name).first()
-            if not obj:
-                obj = Category.objects.create(name=name[:60])
-            objs.append(obj)
-        return objs
+        return resolve_categories(self.cleaned_data.get("categories"))
+
+
+def resolve_categories(raw):
+    """Turn a comma-separated string into Category objects, creating as needed."""
+    names = [n.strip() for n in (raw or "").split(",") if n.strip()]
+    objs = []
+    for name in names[:10]:
+        obj = Category.objects.filter(name__iexact=name).first()
+        if not obj:
+            obj = Category.objects.create(name=name[:60])
+        objs.append(obj)
+    return objs
+
+
+class AssetEditForm(GlassFormMixin, forms.Form):
+    """Edit an asset's listing — title, description, categories, boards."""
+
+    title = forms.CharField(max_length=200, required=False)
+    description = forms.CharField(
+        required=False, widget=forms.Textarea(attrs={"rows": 3})
+    )
+    categories = forms.CharField(
+        required=False,
+        help_text="Comma-separated, e.g. Travel, Home, Fitness",
+    )
+    boards = forms.ModelMultipleChoiceField(
+        queryset=Board.objects.none(),
+        required=True,
+        widget=forms.CheckboxSelectMultiple,
+    )
+    custom_thumb = forms.ImageField(
+        required=False, label="Replace preview image (optional)"
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["boards"].queryset = Board.visible_to(user)
+
+    def category_objects(self):
+        return resolve_categories(self.cleaned_data.get("categories"))

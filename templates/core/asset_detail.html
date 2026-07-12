@@ -17,6 +17,9 @@
     <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
         <button class="btn btn-ghost btn-sm" data-copy="{{ asset.get_absolute_url }}">Copy link</button>
         {% if user_can_delete %}
+        <a class="btn btn-gold btn-sm" href="{% url 'asset_edit' asset.pk %}">Edit</a>
+        {% endif %}
+        {% if user_can_delete %}
         <form method="post" action="{% url 'asset_delete' asset.pk %}" class="lv-inline-form" data-confirm="Delete this asset everywhere? Its file will be permanently removed from the server.">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
