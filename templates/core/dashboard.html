@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Boards — Lumivision{% endblock %}
+{% block content %}
+<div class="lv-page-head">
+    <div>
+        <h1>Vision Boards</h1>
+        <p class="sub">Collect the images, ideas and inspiration that shape what's next.</p>
+    </div>
+    {% if user.can_post %}
+        <a class="btn btn-primary" href="{% url 'board_create' %}">+ New board</a>
+    {% endif %}
+</div>
+
+{% if boards %}
+<div class="lv-board-grid">
+    {% for board in boards %}
+    <a class="lv-board-card reveal" href="{{ board.get_absolute_url }}">
+        {% if board.cover_image %}
+            <div class="lv-board-cover" style="background-image: url('{{ board.cover_image.url }}');"></div>
+        {% else %}
+            <div class="lv-board-noimg"><h3>{{ board.name }}</h3></div>
+        {% endif %}
+        <div class="lv-board-meta">
+            <div>
+                {% if board.cover_image %}<div class="name">{{ board.name }}</div>{% endif %}
+                <div class="count">{{ board.asset_count }} asset{{ board.asset_count|pluralize }} · {{ board.owner.username }}</div>
+            </div>
+            <span class="lv-vis-badge lv-vis-{{ board.visibility }}">{{ board.get_visibility_display }}</span>
+        </div>
+    </a>
+    {% endfor %}
+    {% if user.can_post %}
+    <a class="lv-board-new reveal" href="{% url 'board_create' %}">
+        <span><span class="plus">+</span>Create a board</span>
+    </a>
+    {% endif %}
+</div>
+{% else %}
+<div class="lv-empty reveal">
+    <div class="glyph">✦</div>
+    <p>No boards yet.</p>
+    {% if user.can_post %}
+        <p style="margin-top:1rem;"><a class="btn btn-primary" href="{% url 'board_create' %}">Create the first board</a></p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

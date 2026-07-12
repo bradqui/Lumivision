@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Invites — Lumivision{% endblock %}
+{% block content %}
+<div class="lv-page-head">
+    <div>
+        <h1>Invites</h1>
+        <p class="sub">Generate a unique URL and send it to someone — opening it lets them register.</p>
+    </div>
+</div>
+
+<div class="lv-panel reveal">
+    <form method="post" style="display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end;">
+        {% csrf_token %}
+        <div class="lv-field" style="margin:0; min-width:150px;">
+            <label>Access level</label>
+            {{ form.role }}
+        </div>
+        <div class="lv-field" style="margin:0; flex:1; min-width:180px;">
+            <label>Note (who it's for)</label>
+            {{ form.note }}
+        </div>
+        <div class="lv-field" style="margin:0; width:110px;">
+            <label>Max uses</label>
+            {{ form.max_uses }}
+        </div>
+        <div class="lv-field" style="margin:0; width:150px;">
+            <label>Expires (days)</label>
+            {{ form.expires_days }}
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm" style="margin-bottom:2px;">Generate invite</button>
+    </form>
+</div>
+
+<div class="lv-panel reveal" style="margin-top:1.4rem;">
+    <div class="lv-table-wrap">
+    <table class="lv-table">
+        <thead>
+            <tr>
+                <th>Invite URL</th>
+                <th>Role</th>
+                <th>Note</th>
+                <th>Uses</th>
+                <th>Expires</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invite in invites %}
+            <tr class="{% if not invite.is_valid %}lv-badge-off{% endif %}">
+                <td>
+                    <span class="lv-invite-url">{{ invite.full_url }}</span>
+                    <button class="lv-iconbtn" title="Copy invite URL" data-copy="{{ invite.full_url }}">📋</button>
+                </td>
+                <td><span class="lv-role lv-role-{{ invite.role }}">{{ invite.get_role_display }}</span></td>
+                <td class="lv-muted">{{ invite.note|default:"—" }}</td>
+                <td>{{ invite.use_count }} / {{ invite.max_uses }}</td>
+                <td class="lv-muted">{{ invite.expires_at|date:"M j, Y"|default:"Never" }}</td>
+                <td>
+                    {% if invite.is_valid %}<span style="color:var(--gold);">Active</span>
+                    {% elif invite.revoked %}<span class="lv-muted">Revoked</span>
+                    {% else %}<span class="lv-muted">Expired / used</span>{% endif %}
+                </td>
+                <td>
+                    {% if invite.is_valid %}
+                    <form method="post" action="{% url 'invite_revoke' invite.pk %}" class="lv-inline-form" data-confirm="Revoke this invite link?">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Revoke</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="lv-muted" style="text-align:center; padding:2rem;">No invites yet — generate one above.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

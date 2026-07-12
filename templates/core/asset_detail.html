@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ asset.display_title }} — Lumivision{% endblock %}
+{% block og_meta %}
+<meta property="og:title" content="{{ asset.display_title }} — Lumivision">
+{% if asset.description %}<meta property="og:description" content="{{ asset.description|truncatechars:180 }}">{% endif %}
+{% if asset.preview_url %}<meta property="og:image" content="{% if 'http' in asset.preview_url|slice:':4' %}{{ asset.preview_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ asset.preview_url }}{% endif %}">{% endif %}
+{% endblock %}
+{% block content %}
+
+<div class="lv-page-head reveal">
+    <div>
+        <h1 style="font-size:1.3rem;">{{ asset.display_title }}</h1>
+        <p class="sub">
+            {{ asset.get_kind_display }} · posted by {{ asset.owner.username }} · {{ asset.created_at|date:"M j, Y" }}
+        </p>
+    </div>
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" data-copy="{{ asset.get_absolute_url }}">Copy link</button>
+        {% if user_can_delete %}
+        <form method="post" action="{% url 'asset_delete' asset.pk %}" class="lv-inline-form" data-confirm="Delete this asset everywhere? Its file will be permanently removed from the server.">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="lv-panel reveal" style="text-align:center;">
+    {% if asset.kind == 'image' and asset.file %}
+        <img src="{{ asset.file.url }}" alt="{{ asset.display_title }}"
+             style="max-width:100%; max-height:76vh; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,0.7);">
+    {% elif asset.kind == 'video' and asset.file %}
+        <video src="{{ asset.file.url }}" controls
+               style="max-width:100%; max-height:76vh; border-radius:12px; background:#000;"></video>
+    {% elif asset.kind == 'embed' and asset.embed_src %}
+        <div style="max-width:1000px; margin:0 auto; aspect-ratio:16/9; border-radius:12px; overflow:hidden;">
+            <iframe src="{{ asset.embed_src }}" style="width:100%; height:100%; border:0;"
+                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen></iframe>
+        </div>
+    {% elif asset.kind == 'link' %}
+        {% if asset.link_image_url %}
+            <img src="{{ asset.link_image_url }}" alt="" style="max-width:100%; max-height:50vh; border-radius:12px;">
+        {% endif %}
+        <p style="margin-top:1.2rem;">
+            <a class="btn btn-gold" href="{{ asset.link_url }}" target="_blank" rel="noopener">Visit link ↗</a>
+        </p>
+    {% endif %}
+
+    {% if asset.description %}
+        <p style="margin-top:1.4rem; color:var(--text-dim); max-width:720px; margin-left:auto; margin-right:auto;">{{ asset.description }}</p>
+    {% endif %}
+
+    {% if asset.categories.all %}
+    <div class="lv-card-cats" style="justify-content:center; margin-top:1rem;">
+        {% for c in asset.categories.all %}<span class="lv-cat-tag">{{ c.name }}</span>{% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+{% if boards %}
+<div class="lv-panel reveal" style="margin-top:1.4rem;">
+    <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-faint); margin-bottom:0.8rem;">Appears on</p>
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+        {% for b in boards %}
+            <a class="btn btn-ghost btn-sm" href="{{ b.get_absolute_url }}">{{ b.name }}</a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

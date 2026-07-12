@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Sign in — Lumivision{% endblock %}
+{% block content %}
+<div class="lv-auth-wrap">
+    <div class="lv-panel lv-auth-card">
+        <h1>Welcome Back</h1>
+        <p class="sub">Sign in to your vision space</p>
+        {% if form.non_field_errors %}
+            <div class="lv-form-error">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="lv-field">
+                <label for="id_username">Username</label>
+                <input type="text" name="username" id="id_username" class="lv-input" autofocus required>
+            </div>
+            <div class="lv-field">
+                <label for="id_password">Password</label>
+                <input type="password" name="password" id="id_password" class="lv-input" required>
+            </div>
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <button type="submit" class="btn btn-primary">Enter Lumivision</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}{{ board.name }} — Lumivision{% endblock %}
+{% block og_meta %}
+<meta property="og:title" content="{{ board.name }} — Lumivision">
+{% if board.description %}<meta property="og:description" content="{{ board.description|truncatechars:180 }}">{% endif %}
+{% if board.cover_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ board.cover_image.url }}">{% endif %}
+{% endblock %}
+{% block content %}
+
+<div class="lv-board-hero reveal">
+    {% if board.cover_image %}
+        <div class="cover" style="background-image: url('{{ board.cover_image.url }}');"></div>
+    {% endif %}
+    <div class="inner">
+        <div>
+            <h1>{{ board.name }}</h1>
+            {% if board.description %}<p class="desc">{{ board.description }}</p>{% endif %}
+            <p class="desc" style="margin-top:0.5rem; font-size:0.78rem;">
+                <span class="lv-vis-badge lv-vis-{{ board.visibility }}">{{ board.get_visibility_display }}</span>
+                &nbsp; curated by {{ board.owner.username }} · {{ assets|length }} asset{{ assets|length|pluralize }}
+            </p>
+        </div>
+        <div class="actions">
+            <button class="btn btn-ghost btn-sm" data-copy="{{ board.get_absolute_url }}">Share board</button>
+            {% if can_edit_board %}
+                <a class="btn btn-gold btn-sm" href="{% url 'board_edit' board.slug %}">Edit</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if categories %}
+<div class="lv-chips reveal">
+    <button class="lv-chip active" data-cat="*">All</button>
+    {% for cat in categories %}
+        <button class="lv-chip" data-cat="{{ cat.slug }}">{{ cat.name }}</button>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if assets %}
+<div class="lv-masonry" {% if can_edit_board %}data-reorder-url="{% url 'board_reorder' board.slug %}"{% endif %}>
+    {% for asset in assets %}
+    <div class="lv-card reveal"
+         data-asset-id="{{ asset.pk }}"
+         data-cats="{% for c in asset.categories.all %}{{ c.slug }}|{% endfor %}"
+         data-lb="{{ asset.lb_json }}">
+        <div class="lv-card-inner">
+            <div class="lv-card-media">
+                {% if asset.preview_url %}
+                    <img src="{{ asset.preview_url }}" alt="{{ asset.display_title }}" loading="lazy">
+                    {% if asset.kind == 'video' or asset.kind == 'embed' %}
+                        <div class="play-badge"><span>▶</span></div>
+                    {% endif %}
+                {% else %}
+                    <div class="lv-media-placeholder">
+                        <div class="glyph">{% if asset.kind == 'link' %}🔗{% else %}🎬{% endif %}</div>
+                    </div>
+                    {% if asset.kind == 'video' or asset.kind == 'embed' %}
+                        <div class="play-badge"><span>▶</span></div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="lv-card-body">
+                <div class="lv-card-title">{{ asset.display_title }}</div>
+                {% if asset.kind == 'link' %}
+                    <div class="lv-link-domain">{{ asset.link_url|urlize|striptags|truncatechars:60 }}</div>
+                {% endif %}
+                {% if asset.description %}<div class="lv-card-desc">{{ asset.description }}</div>{% endif %}
+                {% if asset.categories.all %}
+                <div class="lv-card-cats">
+                    {% for c in asset.categories.all %}<span class="lv-cat-tag">{{ c.name }}</span>{% endfor %}
+                </div>
+                {% endif %}
+                <div class="lv-card-foot">
+                    <span>{{ asset.owner.username }}</span>
+                    <div class="lv-card-actions">
+                        <button class="lv-iconbtn" title="Copy link" data-copy="{% url 'asset_detail' asset.pk %}">🔗</button>
+                        {% if asset.user_can_remove %}
+                        <form method="post" action="{% url 'board_asset_remove' board.slug asset.pk %}" class="lv-inline-form" data-confirm="Remove this asset from “{{ board.name }}”? (The asset itself is kept.)">
+                            {% csrf_token %}
+                            <button type="submit" class="lv-iconbtn" title="Remove from board">⤫</button>
+                        </form>
+                        {% endif %}
+                        {% if asset.user_can_delete %}
+                        <form method="post" action="{% url 'asset_delete' asset.pk %}" class="lv-inline-form" data-confirm="Delete this asset everywhere? Its file will be permanently removed from the server.">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ board.get_absolute_url }}">
+                            <button type="submit" class="lv-iconbtn danger" title="Delete asset">🗑</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="lv-empty reveal">
+    <div class="glyph">✦</div>
+    <p>This board is waiting for its first spark of inspiration.</p>
+    {% if can_post %}<p class="lv-help" style="margin-top:0.6rem;">Drop images anywhere on this page, or press the + button.</p>{% endif %}
+</div>
+{% endif %}
+
+{# ---------- lightbox ---------- #}
+<div class="lv-overlay lv-lightbox" id="lv-lightbox">
+    <div class="lv-lightbox-inner">
+        <button class="lv-lightbox-close" data-close-overlay title="Close">✕</button>
+        <button class="lv-lightbox-nav lv-lightbox-prev" title="Previous">‹</button>
+        <button class="lv-lightbox-nav lv-lightbox-next" title="Next">›</button>
+        <div class="lv-lightbox-media"></div>
+        <div class="lv-lightbox-caption"></div>
+    </div>
+</div>
+
+{% if can_post %}
+{# ---------- add asset ---------- #}
+<button class="lv-fab" data-open-overlay="lv-asset-modal" title="Add to this board">+</button>
+
+<div class="lv-overlay" id="lv-asset-modal" data-og-url="{% url 'og_preview' %}">
+    <div class="lv-modal">
+        <h2>Add to the vision</h2>
+        <div class="lv-tabs">
+            <button type="button" class="lv-tab active" data-tab="upload" data-kind="image">Upload</button>
+            <button type="button" class="lv-tab" data-tab="embed" data-kind="embed">Video embed</button>
+            <button type="button" class="lv-tab" data-tab="link" data-kind="link">Link</button>
+        </div>
+        <form method="post" action="{% url 'asset_create' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="kind" value="image">
+
+            <div class="lv-tabpane active" data-pane="upload">
+                <div class="lv-field">
+                    <label>Image or video file</label>
+                    <input type="file" name="file" class="lv-input" accept="image/*,video/mp4,video/webm,video/quicktime,.m4v,.ogv">
+                    <p class="lv-help">Images: jpg · png · gif · webp · avif — Videos: mp4 · webm · mov</p>
+                </div>
+                <div class="lv-field">
+                    <label>Preview image <span style="text-transform:none;">(optional — used for video uploads)</span></label>
+                    <input type="file" name="custom_thumb" class="lv-input" accept="image/*">
+                </div>
+            </div>
+
+            <div class="lv-tabpane" data-pane="embed">
+                <div class="lv-field">
+                    <label>YouTube or Vimeo URL</label>
+                    <input type="url" name="embed_url" class="lv-input" placeholder="https://www.youtube.com/watch?v=…">
+                </div>
+            </div>
+
+            <div class="lv-tabpane" data-pane="link">
+                <div class="lv-field">
+                    <label>Link URL</label>
+                    <input type="url" name="link_url" class="lv-input" placeholder="https://…">
+                    <p class="lv-help">A preview is fetched automatically.</p>
+                </div>
+                <div class="lv-og-preview">
+                    <img src="" alt="">
+                    <div class="og-text">
+                        <div class="og-title"></div>
+                        <div class="og-desc"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lv-field">
+                <label>Title <span style="text-transform:none;">(optional)</span></label>
+                <input type="text" name="title" class="lv-input" maxlength="200">
+            </div>
+            <div class="lv-field">
+                <label>Description <span style="text-transform:none;">(optional)</span></label>
+                <textarea name="description" class="lv-input" rows="2"></textarea>
+            </div>
+            <div class="lv-field">
+                <label>Categories</label>
+                <input type="text" name="categories" class="lv-input" placeholder="Travel, Home, Fitness…">
+                <p class="lv-help">Comma-separated — used to filter within a board.</p>
+            </div>
+            <div class="lv-field">
+                <label>Boards</label>
+                {{ asset_form.boards }}
+                <p class="lv-help">Hold Ctrl / Cmd to select multiple boards.</p>
+            </div>
+            <div style="display:flex; gap:0.7rem; justify-content:flex-end; margin-top:1.4rem;">
+                <button type="button" class="btn btn-ghost btn-sm" data-close-overlay>Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm">Add to board</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ---------- drag & drop upload ---------- #}
+<div class="lv-dropzone" id="lv-dropzone" data-upload-url="{% url 'asset_quick_upload' board.slug %}">
+    <div class="dz-inner">Drop to add to<br>{{ board.name }}</div>
+</div>
+<div class="lv-upload-progress" id="lv-upload-progress"></div>
+{% endif %}
+
+{% endblock %}

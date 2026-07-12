@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Users — Lumivision{% endblock %}
+{% block content %}
+<div class="lv-page-head">
+    <div>
+        <h1>Users</h1>
+        <p class="sub">Everyone with access to this Lumivision instance.</p>
+    </div>
+</div>
+
+<div class="lv-panel reveal">
+    <div class="lv-table-wrap">
+    <table class="lv-table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Boards</th>
+                <th>Assets</th>
+                <th>Joined</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr class="{% if not u.is_active %}lv-badge-off{% endif %}">
+                <td>
+                    <span class="lv-avatar" style="display:inline-grid; margin-right:0.5rem; vertical-align:middle;">{{ u.username|first|upper }}</span>
+                    <strong>{{ u.username }}</strong>
+                    {% if u == user %}<span class="lv-muted">(you)</span>{% endif %}
+                </td>
+                <td class="lv-muted">{{ u.email|default:"—" }}</td>
+                <td>
+                    {% if u == user %}
+                        <span class="lv-role lv-role-{{ u.role }}">{{ u.get_role_display }}</span>
+                    {% else %}
+                    <form method="post" action="{% url 'user_update' u.pk %}" class="lv-inline-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="role">
+                        <select name="role" class="lv-input lv-select" style="width:auto; padding:0.35rem 0.7rem; font-size:0.8rem;" onchange="this.form.submit()">
+                            {% for value, label in role_choices %}
+                                <option value="{{ value }}" {% if u.role == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                    {% endif %}
+                </td>
+                <td>{{ u.n_boards }}</td>
+                <td>{{ u.n_assets }}</td>
+                <td class="lv-muted">{{ u.date_joined|date:"M j, Y" }}</td>
+                <td>{% if u.is_active %}<span style="color:var(--gold);">Active</span>{% else %}<span class="lv-muted">Deactivated</span>{% endif %}</td>
+                <td>
+                    {% if u != user %}
+                    <form method="post" action="{% url 'user_update' u.pk %}" class="lv-inline-form" data-confirm="{% if u.is_active %}Deactivate {{ u.username }}? They will no longer be able to sign in.{% else %}Re-activate {{ u.username }}?{% endif %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="toggle_active">
+                        <button type="submit" class="btn {% if u.is_active %}btn-danger{% else %}btn-gold{% endif %} btn-sm">
+                            {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

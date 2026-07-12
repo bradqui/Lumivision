@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Invite unavailable — Lumivision{% endblock %}
+{% block content %}
+<div class="lv-auth-wrap">
+    <div class="lv-panel lv-auth-card">
+        <h1>Invite Unavailable</h1>
+        <p class="sub">
+            This invite link has expired, been revoked, or reached its usage limit.<br><br>
+            Ask the person who sent it to generate a new one.
+        </p>
+        <a class="btn btn-ghost" href="{% url 'login' %}">Back to sign in</a>
+    </div>
+</div>
+{% endblock %}

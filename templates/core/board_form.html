@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{% if board %}Edit {{ board.name }}{% else %}New board{% endif %} — Lumivision{% endblock %}
+{% block content %}
+<div class="lv-auth-wrap">
+    <div class="lv-panel lv-auth-card" style="width: min(560px, 100%); text-align: left;">
+        <h1 style="text-align:center;">{% if board %}Edit Board{% else %}New Board{% endif %}</h1>
+        <p class="sub" style="text-align:center;">{% if board %}Refine your canvas{% else %}Open a new canvas for your vision{% endif %}</p>
+        {% if form.non_field_errors %}
+            <div class="lv-form-error">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="lv-field">
+                <label for="{{ form.name.id_for_label }}">Board name</label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="lv-errors">{{ form.name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="lv-field">
+                <label for="{{ form.description.id_for_label }}">Description</label>
+                {{ form.description }}
+            </div>
+            <div class="lv-field">
+                <label for="{{ form.cover_image.id_for_label }}">Cover image (shown in place of the name)</label>
+                {% if board and board.cover_image %}
+                    <p class="lv-help" style="margin-bottom:0.4rem;">Current: {{ board.cover_image.name }}</p>
+                {% endif %}
+                {{ form.cover_image }}
+                {% if form.cover_image.errors %}<div class="lv-errors">{{ form.cover_image.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="lv-field">
+                <label for="{{ form.visibility.id_for_label }}">Visibility</label>
+                {{ form.visibility }}
+                <p class="lv-help">Private — only you · Registered Users — anyone signed in · Public — visible to the world (view-only)</p>
+            </div>
+            <button type="submit" class="btn btn-primary">{% if board %}Save changes{% else %}Create board{% endif %}</button>
+        </form>
+        {% if board %}
+        <form method="post" action="{% url 'board_delete' board.slug %}" data-confirm="Delete this board? Assets that also live on other boards survive; assets only on this board are deleted along with their files." style="margin-top:1.4rem; text-align:center;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm">Delete board</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
