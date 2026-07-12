@@ -37,7 +37,7 @@ class RegisterForm(GlassFormMixin, UserCreationForm):
 class BoardForm(GlassFormMixin, forms.ModelForm):
     class Meta:
         model = Board
-        fields = ("name", "description", "cover_image", "visibility")
+        fields = ("name", "description", "banner_image", "logo_image", "visibility")
         widgets = {
             "description": forms.Textarea(attrs={"rows": 3}),
         }

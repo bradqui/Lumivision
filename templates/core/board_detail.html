@@ -3,17 +3,21 @@
 {% block og_meta %}
 <meta property="og:title" content="{{ board.name }} — Lumivision">
 {% if board.description %}<meta property="og:description" content="{{ board.description|truncatechars:180 }}">{% endif %}
-{% if board.cover_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ board.cover_image.url }}">{% endif %}
+{% if board.banner_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ board.banner_image.url }}">{% elif board.logo_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ board.logo_image.url }}">{% endif %}
 {% endblock %}
 {% block content %}
 
 <div class="lv-board-hero reveal">
-    {% if board.cover_image %}
-        <div class="cover" style="background-image: url('{{ board.cover_image.url }}');"></div>
+    {% if board.banner_image %}
+        <div class="cover" style="background-image: url('{{ board.banner_image.url }}');"></div>
     {% endif %}
     <div class="inner">
         <div>
-            <h1>{{ board.name }}</h1>
+            {% if board.logo_image %}
+                <img class="lv-board-hero-logo" src="{{ board.logo_image.url }}" alt="{{ board.name }}">
+            {% else %}
+                <h1>{{ board.name }}</h1>
+            {% endif %}
             {% if board.description %}<p class="desc">{{ board.description }}</p>{% endif %}
             <p class="desc" style="margin-top:0.5rem; font-size:0.78rem;">
                 <span class="lv-vis-badge lv-vis-{{ board.visibility }}">{{ board.get_visibility_display }}</span>

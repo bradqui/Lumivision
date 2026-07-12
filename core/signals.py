@@ -18,5 +18,6 @@ def delete_asset_files(sender, instance, **kwargs):
 
 
 @receiver(post_delete, sender=Board)
-def delete_board_cover(sender, instance, **kwargs):
-    _delete_field_file(instance.cover_image)
+def delete_board_images(sender, instance, **kwargs):
+    _delete_field_file(instance.banner_image)
+    _delete_field_file(instance.logo_image)

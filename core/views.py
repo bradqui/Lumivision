@@ -107,10 +107,13 @@ def board_edit(request, slug):
     if request.method == "POST":
         form = BoardForm(request.POST, request.FILES, instance=board)
         if form.is_valid():
-            old_cover = Board.objects.get(pk=board.pk).cover_image
+            old = Board.objects.get(pk=board.pk)
+            old_banner, old_logo = old.banner_image, old.logo_image
             updated = form.save()
-            if old_cover and old_cover != updated.cover_image:
-                old_cover.delete(save=False)
+            if old_banner and old_banner != updated.banner_image:
+                old_banner.delete(save=False)
+            if old_logo and old_logo != updated.logo_image:
+                old_logo.delete(save=False)
             messages.success(request, "Board updated.")
             return redirect(updated)
     else:

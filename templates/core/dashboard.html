@@ -15,14 +15,19 @@
 <div class="lv-board-grid">
     {% for board in boards %}
     <a class="lv-board-card reveal" href="{{ board.get_absolute_url }}">
-        {% if board.cover_image %}
-            <div class="lv-board-cover" style="background-image: url('{{ board.cover_image.url }}');"></div>
+        {% if board.banner_image %}
+            <div class="lv-board-cover" style="background-image: url('{{ board.banner_image.url }}');"></div>
         {% else %}
-            <div class="lv-board-noimg"><h3>{{ board.name }}</h3></div>
+            <div class="lv-board-noimg">{% if not board.logo_image %}<h3>{{ board.name }}</h3>{% endif %}</div>
+        {% endif %}
+        {% if board.logo_image %}
+            <div class="lv-board-logo-wrap">
+                <img class="lv-board-logo" src="{{ board.logo_image.url }}" alt="{{ board.name }}">
+            </div>
         {% endif %}
         <div class="lv-board-meta">
             <div>
-                {% if board.cover_image %}<div class="name">{{ board.name }}</div>{% endif %}
+                {% if board.banner_image and not board.logo_image %}<div class="name">{{ board.name }}</div>{% endif %}
                 <div class="count">{{ board.asset_count }} asset{{ board.asset_count|pluralize }} · {{ board.owner.username }}</div>
             </div>
             <span class="lv-vis-badge lv-vis-{{ board.visibility }}">{{ board.get_visibility_display }}</span>

@@ -461,6 +461,32 @@ input[type="file"]::file-selector-button:hover { background: rgba(126,116,212,0.
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+.lv-board-logo-wrap {
+    position: absolute;
+    inset: 0 0 2.6rem 0; /* keep clear of the meta strip */
+    display: grid;
+    place-items: center;
+    padding: 1.4rem;
+    z-index: 1;
+    pointer-events: none;
+}
+.lv-board-logo {
+    max-width: 78%;
+    max-height: 82%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.65));
+    transition: transform 0.45s var(--ease);
+}
+.lv-board-card:hover .lv-board-logo { transform: scale(1.05); }
+
+.lv-board-hero-logo {
+    display: block;
+    max-height: 96px;
+    max-width: min(420px, 80vw);
+    object-fit: contain;
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.7));
+}
+
 .lv-board-meta {
     position: absolute;
     left: 0; right: 0; bottom: 0;

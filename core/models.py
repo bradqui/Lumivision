@@ -79,10 +79,15 @@ class Board(models.Model):
     name = models.CharField(max_length=120)
     slug = models.SlugField(max_length=140, unique=True, editable=False)
     description = models.TextField(blank=True)
-    cover_image = models.ImageField(
+    banner_image = models.ImageField(
         upload_to="covers/%Y/%m/",
         blank=True,
-        help_text="Shown in place of the board name",
+        help_text="Backdrop shown behind the board name",
+    )
+    logo_image = models.ImageField(
+        upload_to="logos/%Y/%m/",
+        blank=True,
+        help_text="Displayed in place of the board name, like a logo",
     )
     visibility = models.CharField(
         max_length=12, choices=Visibility.choices, default=Visibility.REGISTERED
