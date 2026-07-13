@@ -1249,6 +1249,56 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
 .lv-muted { color: var(--text-faint); }
 .lv-badge-off { opacity: 0.45; }
 
+/* ---------- clearable file widget ---------- */
+.lv-file-widget { display: flex; flex-direction: column; gap: 0.55rem; }
+.lv-file-current {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    background: rgba(var(--bg-rgb), 0.4);
+    flex-wrap: wrap;
+}
+.lv-file-current img {
+    height: 52px;
+    width: 84px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border-hi);
+}
+.lv-file-current .fname {
+    flex: 1;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    min-width: 90px;
+}
+.lv-clear-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.95rem;
+    border-radius: 50px;
+    border: 1px solid rgba(224, 106, 122, 0.45);
+    color: var(--danger);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s var(--ease);
+}
+.lv-clear-toggle input { accent-color: var(--danger); cursor: pointer; }
+.lv-clear-toggle .when-on { display: none; }
+.lv-clear-toggle:hover { background: rgba(224, 106, 122, 0.08); }
+.lv-clear-toggle:has(input:checked) {
+    background: rgba(224, 106, 122, 0.16);
+    box-shadow: 0 0 14px rgba(224, 106, 122, 0.35);
+}
+.lv-clear-toggle:has(input:checked) .when-off { display: none; }
+.lv-clear-toggle:has(input:checked) .when-on { display: inline; }
+
 /* ---------- arrange mode (touch-friendly reorder) ---------- */
 .lv-arrange-controls {
     display: none;

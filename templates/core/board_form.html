@@ -21,17 +21,11 @@
             </div>
             <div class="lv-field">
                 <label for="{{ form.banner_image.id_for_label }}">Banner image (backdrop behind the name)</label>
-                {% if board and board.banner_image %}
-                    <p class="lv-help" style="margin-bottom:0.4rem;">Current: {{ board.banner_image.name }}</p>
-                {% endif %}
                 {{ form.banner_image }}
                 {% if form.banner_image.errors %}<div class="lv-errors">{{ form.banner_image.errors.0 }}</div>{% endif %}
             </div>
             <div class="lv-field">
                 <label for="{{ form.logo_image.id_for_label }}">Logo image (replaces the board name)</label>
-                {% if board and board.logo_image %}
-                    <p class="lv-help" style="margin-bottom:0.4rem;">Current: {{ board.logo_image.name }}</p>
-                {% endif %}
                 {{ form.logo_image }}
                 <p class="lv-help">Transparent PNG/SVG-style logos look best. Leave empty to show the name as text.</p>
                 {% if form.logo_image.errors %}<div class="lv-errors">{{ form.logo_image.errors.0 }}</div>{% endif %}

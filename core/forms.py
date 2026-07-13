@@ -38,6 +38,12 @@ class RegisterForm(GlassFormMixin, UserCreationForm):
         fields = ("username", "email")
 
 
+class LvClearableFileInput(forms.ClearableFileInput):
+    """Styled replacement for Django's confusing filename + [x] Clear row."""
+
+    template_name = "widgets/lv_clearable_file.html"
+
+
 class GlassPasswordChangeForm(GlassFormMixin, PasswordChangeForm):
     pass
 
@@ -61,6 +67,8 @@ class BoardForm(GlassFormMixin, forms.ModelForm):
         widgets = {
             "description": forms.Textarea(attrs={"rows": 3}),
             "collaborators": forms.CheckboxSelectMultiple,
+            "banner_image": LvClearableFileInput,
+            "logo_image": LvClearableFileInput,
         }
 
     def __init__(self, *args, owner=None, **kwargs):

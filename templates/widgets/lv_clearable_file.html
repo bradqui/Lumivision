@@ -1,0 +1,19 @@
+<div class="lv-file-widget">
+{% if widget.is_initial %}
+    <div class="lv-file-current">
+        <img src="{{ widget.value.url }}" alt="Current image">
+        <span class="fname">Current image</span>
+        {% if not widget.required %}
+        <label class="lv-clear-toggle" for="{{ widget.checkbox_id }}">
+            <input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}">
+            <span class="when-off">Remove on save</span>
+            <span class="when-on">Will be removed ✓</span>
+        </label>
+        {% endif %}
+    </div>
+{% endif %}
+    <input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+{% if widget.is_initial %}
+    <p class="lv-help" style="margin-top:0.1rem;">Choosing a new file replaces the current image.</p>
+{% endif %}
+</div>
