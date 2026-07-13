@@ -313,8 +313,8 @@
             "</div>" +
             '<div style="display:flex;gap:0.6rem;flex-wrap:wrap;">';
         if (item.kind === "link" && item.href)
-            capHtml += '<a class="btn btn-gold btn-sm" href="' + item.href + '" target="_blank" rel="noopener">Visit link ↗</a>';
-        capHtml += '<button class="btn btn-ghost btn-sm" data-share="' + item.permalink + '">Copy link</button></div>';
+            capHtml += '<a class="btn btn-gold btn-sm" href="' + escapeHtml(item.href) + '" target="_blank" rel="noopener">Visit link ↗</a>';
+        capHtml += '<button class="btn btn-ghost btn-sm" data-share="' + escapeHtml(item.permalink) + '">Copy link</button></div>';
         cap.innerHTML = capHtml;
         cap.querySelector("[data-share]").addEventListener("click", (ev) =>
             copyText(ev.target.dataset.share)

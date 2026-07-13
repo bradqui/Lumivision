@@ -2,13 +2,15 @@
 video poster extraction."""
 
 import io
+import ipaddress
 import os
 import re
 import shutil
+import socket
 import subprocess
 import tempfile
 from html.parser import HTMLParser
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import requests
 from django.core.files.base import ContentFile
@@ -91,6 +93,50 @@ class _MetaParser(HTMLParser):
             self.title += data
 
 
+def _host_is_public(hostname):
+    """SSRF guard: refuse hostnames that resolve to private/internal addresses
+    (RFC1918, loopback, link-local/cloud-metadata, etc.)."""
+    try:
+        infos = socket.getaddrinfo(hostname, None)
+    except (socket.gaierror, UnicodeError):
+        return False
+    if not infos:
+        return False
+    for info in infos:
+        try:
+            ip = ipaddress.ip_address(info[4][0])
+        except ValueError:
+            return False
+        if not ip.is_global or ip.is_multicast:
+            return False
+    return True
+
+
+def _safe_get(url, max_redirects=4):
+    """GET a user-supplied URL with the SSRF guard applied to every redirect hop."""
+    for _ in range(max_redirects + 1):
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https") or not parsed.hostname:
+            return None
+        if not _host_is_public(parsed.hostname):
+            return None
+        r = requests.get(
+            url,
+            headers=REQUEST_HEADERS,
+            timeout=FETCH_TIMEOUT,
+            stream=True,
+            allow_redirects=False,
+        )
+        if r.status_code in (301, 302, 303, 307, 308):
+            location = r.headers.get("location")
+            if not location:
+                return None
+            url = urljoin(url, location)
+            continue
+        return r
+    return None
+
+
 def fetch_og(url):
     """Fetch Open Graph metadata for a URL. Returns dict(title, description, image)."""
     result = {"title": "", "description": "", "image": ""}
@@ -98,13 +144,9 @@ def fetch_og(url):
     if parsed.scheme not in ("http", "https"):
         return result
     try:
-        r = requests.get(
-            url,
-            headers=REQUEST_HEADERS,
-            timeout=FETCH_TIMEOUT,
-            stream=True,
-            allow_redirects=True,
-        )
+        r = _safe_get(url)
+        if r is None:
+            return result
         content_type = r.headers.get("content-type", "")
         if "html" not in content_type:
             return result

@@ -1,7 +1,6 @@
 services:
   lumivision:
-    build: .
-    image: lumivision:latest
+    image: ghcr.io/bradqui/lumivision:latest
     container_name: lumivision
     restart: unless-stopped
     ports:

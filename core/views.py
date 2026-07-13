@@ -5,8 +5,8 @@ from functools import wraps
 from django.contrib import messages
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.db.models import Count, Max
+from django.db import connection, transaction
+from django.db.models import Count, F, Max
 from django.http import (
     HttpResponseForbidden,
     JsonResponse,
@@ -33,6 +33,16 @@ from .utils import (
     make_thumbnail,
     parse_embed,
 )
+
+
+def healthz(request):
+    """Unauthenticated container health probe: verifies the DB responds."""
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+    except Exception:
+        return JsonResponse({"status": "error"}, status=500)
+    return JsonResponse({"status": "ok"})
 
 
 def member_required(view):
@@ -74,8 +84,9 @@ def join(request, token):
                 user = form.save(commit=False)
                 user.role = invite.role
                 user.save()
-                invite.use_count += 1
-                invite.save(update_fields=["use_count"])
+                Invite.objects.filter(pk=invite.pk).update(
+                    use_count=F("use_count") + 1
+                )
             login(request, user)
             messages.success(request, f"Welcome to Lumivision, {user.username}!")
             return redirect("dashboard")

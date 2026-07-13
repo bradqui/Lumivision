@@ -36,6 +36,9 @@ ALLOWED_HOSTS = [
     for h in os.environ.get("LUMIVISION_ALLOWED_HOSTS", "*").split(",")
     if h.strip()
 ]
+# The container health check probes over loopback regardless of public hosts.
+if "*" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS += ["127.0.0.1", "localhost"]
 
 CSRF_TRUSTED_ORIGINS = [
     o.strip()
@@ -43,7 +46,7 @@ CSRF_TRUSTED_ORIGINS = [
     if o.strip()
 ]
 
-# Honor X-Forwarded-Proto from the Virtualmin/nginx/Apache reverse proxy.
+# Honor X-Forwarded-Proto from the reverse proxy (nginx/Apache/Caddy/…).
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 INSTALLED_APPS = [
@@ -62,6 +65,7 @@ FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "core.middleware.MaxBodySizeMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

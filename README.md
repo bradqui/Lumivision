@@ -1,106 +1,138 @@
 # Lumivision
 
-A self-hosted, invite-only **vision board** for sharing images, videos and links with a small
-circle — wrapped in a polished, high-tech dark UI (glassmorphism, purple/gold gradients,
-animated transitions) inspired by the Luminatus visual language.
+A self-hosted, invite-only **vision board** for sharing images, videos and links with your
+circle — wrapped in a polished dark UI with glassmorphism, animated transitions, and a
+built-in theme system. Runs as a single Docker container with all state in one volume.
 
 ## Features
 
-- **Boards** with three visibility levels:
-  - **Private** — only the creator, collaborators, and admins can see it
-  - **Registered Users** — every signed-in user can see it
-  - **Public** — viewable by anyone on the internet, always read-only
-- **Collaborators**: board owners pick specific members who may add content to their
-  board — everyone else views only. Collaborators can also see private boards they're on
-- **Assets**: image uploads, video uploads (mp4/webm/mov) with automatic poster-frame
-  thumbnails (ffmpeg), YouTube/Vimeo embeds, and rich links with automatically fetched
-  Open Graph previews
-- **Themes**: 7 built-in themes (4 dark, 3 light). Each user picks an app-wide theme on
-  their Account page; board creators can force a theme on a board for every viewer.
-  Default: Royal (dark)
-- Assets can live on **multiple boards** at once and carry **categories** used to filter
-  within a board (animated chip filtering)
-- **Masonry layout** with entrance animations, hover glow, and a **lightbox** viewer with
-  keyboard/arrow navigation
-- **Drag & drop**: drop files anywhere on a board to upload; board owners drag cards to
-  reorder — or use the touch-friendly **Arrange** mode on mobile
-- **Account self-service**: theme picker and password change; admins can set any user's
-  password and promote other accounts to Admin from the Users page
-- Every board (`/b/<slug>/`) and asset (`/a/<id>/`) has a **clean shareable URL**
-- **Invite-only registration**: admins generate unique URLs (`/join/<token>/`) with a role,
-  optional expiry and usage limit
-- **Three roles** — Admin (manage users/invites, moderate content), Member (post assets,
-  create boards, delete own content), Viewer (view only)
-- Users can only delete assets **they posted**; deleting an asset removes its files from disk
-- Board covers: upload an image that replaces the board name on the dashboard
-- Django **admin panel** at `/admin/` as a back-office safety net
-- Single Docker container, SQLite + uploads in one mounted volume — trivial to back up
+- **Boards** with three visibility levels — Private, Registered Users, or fully **Public**
+  (view-only, shareable with anyone)
+- **Collaborators**: board owners choose which members may add content; collaborators can
+  also see private boards they're invited to
+- **Assets**: image uploads, video uploads with automatic poster-frame thumbnails (ffmpeg),
+  YouTube/Vimeo embeds, and rich links with auto-fetched Open Graph previews
+- Assets can live on **multiple boards** and carry **categories** for animated filtering
+  within a board
+- **Masonry layout**, hover glow, entrance animations, and a **lightbox** viewer with
+  keyboard navigation
+- **Drag & drop** uploads and reordering, plus a touch-friendly **Arrange** mode on mobile
+- **Themes**: 7 built-in looks (4 dark, 3 light). Every user picks their own app-wide
+  theme; boards can force a theme for all viewers. Default: Royal (dark)
+- **Invite-only registration**: generate unique URLs with a role, optional expiry, and
+  usage limit — no open signup
+- **Three roles**: Admin, Member, Viewer, plus per-user profile pictures, self-service
+  password change, and admin password reset
+- Clean shareable URLs for every board (`/b/<slug>/`) and asset (`/a/<id>/`) with Open
+  Graph tags for link unfurling
+- Deleting an asset removes its files from disk; users can only delete what they posted
+- Django admin at `/admin/` as a back-office for administrators
 
-## Quick start (Docker)
+## Quick start
+
+Requires Docker with the compose plugin.
 
 ```bash
-git clone <this repo> lumivision && cd lumivision
-cp .env.example .env
+mkdir lumivision && cd lumivision
+curl -O https://raw.githubusercontent.com/bradqui/Lumivision/main/docker-compose.yml
+curl -o .env https://raw.githubusercontent.com/bradqui/Lumivision/main/.env.example
 nano .env          # set LUMIVISION_ADMIN_PASSWORD and your hostname at minimum
-docker compose up -d --build
+docker compose up -d
 ```
 
-Compose reads `.env` automatically and refuses to start until
-`LUMIVISION_ADMIN_PASSWORD` is set. Because `.env` is gitignored, your settings survive
-`git pull` untouched.
+That pulls the published image from `ghcr.io/bradqui/lumivision`, creates the admin
+account on first start, and serves on port **8018** (change with `LUMIVISION_HOST_PORT`).
 
-Open `http://your-server:8018`, sign in with the admin credentials from `.env`,
-then go to **Invites** to generate registration links for your circle.
+Sign in, then open **Invites** to generate registration links for your circle.
 
-All persistent state (SQLite database, uploads, generated secret key) lives in `./data`.
-Back that directory up and you've backed up everything.
+All persistent state (SQLite database, uploads, auto-generated secret key) lives in
+`./data`. **Backing up that one directory backs up everything.**
 
-### Environment variables (set in `.env`)
+### Updating
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+Database migrations run automatically at container start.
+
+## Configuration (`.env`)
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `LUMIVISION_ADMIN_PASSWORD` | **required** | First-run admin password (account created once; changing it later has no effect) |
+| `LUMIVISION_ADMIN_PASSWORD` | **required** | First-run admin password (account created once; later changes have no effect) |
 | `LUMIVISION_ADMIN_USER` | `admin` | First-run admin username |
-| `LUMIVISION_HOST_PORT` | `8018` | Host port the container is published on |
+| `LUMIVISION_HOST_PORT` | `8018` | Host port the container publishes |
 | `LUMIVISION_ALLOWED_HOSTS` | `*` | Comma-separated hostnames, e.g. `vision.example.com` |
 | `LUMIVISION_TRUSTED_ORIGINS` | – | **Required behind HTTPS**, e.g. `https://vision.example.com` |
 | `LUMIVISION_SECRET_KEY` | auto | Auto-generated and persisted in the data volume if unset |
 | `LUMIVISION_MAX_UPLOAD_MB` | `250` | Per-file upload cap |
 | `LUMIVISION_WORKERS` | `3` | Gunicorn worker count |
 | `LUMIVISION_TIME_ZONE` | `UTC` | Display timezone |
+| `LUMIVISION_COOKIE_SECURE` | `1` | Set `0` only if serving over plain HTTP (e.g. LAN-only) |
 | `LUMIVISION_DEBUG` | `0` | Set `1` only for local development |
 
-## Running behind Virtualmin
+## Running behind a reverse proxy
 
-1. Create the virtual server (e.g. `vision.example.com`) with SSL.
-2. Enable proxying to the container — Virtualmin: *Server Configuration → Edit Proxy Website*,
-   or add to the Apache config:
-   ```apache
-   ProxyPreserveHost On
-   ProxyPass        / http://127.0.0.1:8018/
-   ProxyPassReverse / http://127.0.0.1:8018/
-   RequestHeader set X-Forwarded-Proto "https"
-   ```
-   `ProxyPreserveHost On` is required — without it Apache forwards `Host: 127.0.0.1`
-   and Django's ALLOWED_HOSTS check returns 400. `RequestHeader` needs mod_headers
-   (`a2enmod headers`).
-3. Set in `.env`:
-   ```dotenv
-   LUMIVISION_ALLOWED_HOSTS=vision.example.com
-   LUMIVISION_TRUSTED_ORIGINS=https://vision.example.com
-   ```
-4. `docker compose up -d` and you're live.
+Lumivision expects to sit behind your web server, which terminates TLS and proxies to the
+container. Two things matter regardless of server:
 
-## Local development
+1. **Preserve the original `Host` header** — otherwise Django's host validation returns 400.
+2. **Send `X-Forwarded-Proto`** so the app knows the request was HTTPS.
 
-```powershell
-python -m venv .venv
-.venv\Scripts\pip install -r requirements.txt      # Linux/macOS: .venv/bin/pip
-$env:LUMIVISION_DEBUG = "1"
-.venv\Scripts\python manage.py migrate
-.venv\Scripts\python manage.py createsuperuser
-.venv\Scripts\python manage.py runserver
+Set in `.env`:
+
+```dotenv
+LUMIVISION_ALLOWED_HOSTS=vision.example.com
+LUMIVISION_TRUSTED_ORIGINS=https://vision.example.com
 ```
+
+### nginx
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name vision.example.com;
+    # ssl_certificate ...; ssl_certificate_key ...;
+
+    client_max_body_size 300m;
+
+    location / {
+        proxy_pass http://127.0.0.1:8018;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+server {
+    listen 80;
+    server_name vision.example.com;
+    return 301 https://$host$request_uri;
+}
+```
+
+### Apache
+
+```apache
+<VirtualHost *:443>
+    ServerName vision.example.com
+    # SSLEngine on; SSLCertificateFile ...
+
+    ProxyPreserveHost On
+    ProxyPass        / http://127.0.0.1:8018/
+    ProxyPassReverse / http://127.0.0.1:8018/
+    RequestHeader set X-Forwarded-Proto "https"
+</VirtualHost>
+
+<VirtualHost *:80>
+    ServerName vision.example.com
+    RewriteEngine On
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</VirtualHost>
+```
+
+Requires `mod_proxy`, `mod_proxy_http`, `mod_headers`, and `mod_rewrite`.
 
 ## Roles & permissions
 
@@ -114,8 +146,36 @@ $env:LUMIVISION_DEBUG = "1"
 | Delete anyone's assets / boards | ✔ | – | – | – |
 | Generate invites, manage users | ✔ | – | – | – |
 
-## URL map
+## Development
 
-- `/` dashboard · `/b/<slug>/` board · `/a/<id>/` asset permalink
-- `/join/<token>/` invite registration · `/accounts/login/` sign in
-- `/manage/invites/` · `/manage/users/` (admin) · `/admin/` Django admin
+```bash
+git clone https://github.com/bradqui/Lumivision.git && cd Lumivision
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+export LUMIVISION_DEBUG=1                            # Windows: $env:LUMIVISION_DEBUG="1"
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Run the test suite with `python manage.py test`. CI runs tests and a production static
+build on every push and pull request.
+
+To run the container built from local source instead of the published image:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+```
+
+## Releasing (maintainers)
+
+Tag a version and push it — GitHub Actions builds a multi-arch image (amd64 + arm64) and
+publishes it to GHCR as `latest`, `X.Y`, and `X.Y.Z`:
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+## License
+
+[MIT](LICENSE)
