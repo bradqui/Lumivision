@@ -30,7 +30,8 @@ built-in theme system. Runs as a single Docker container with all state in one v
 
 ## Quick start
 
-Requires Docker with the compose plugin.
+Requires Docker (the compose plugin is convenient but optional — see
+[Without compose](#without-compose-docker-run) below).
 
 ```bash
 mkdir lumivision && cd lumivision
@@ -55,6 +56,40 @@ docker compose pull && docker compose up -d
 ```
 
 Database migrations run automatically at container start.
+
+### Without compose (docker run)
+
+The image is self-contained — compose is not required:
+
+```bash
+mkdir -p lumivision/data && cd lumivision
+docker run -d --name lumivision \
+  --restart unless-stopped \
+  -p 8018:8000 \
+  -v "$(pwd)/data:/data" \
+  -e LUMIVISION_ADMIN_PASSWORD='change-me-now' \
+  -e LUMIVISION_ALLOWED_HOSTS='vision.example.com' \
+  -e LUMIVISION_TRUSTED_ORIGINS='https://vision.example.com' \
+  ghcr.io/bradqui/lumivision:latest
+```
+
+Only `LUMIVISION_ADMIN_PASSWORD` is required on the first run (it creates the admin
+account); every variable from the configuration table below works the same way. If you
+prefer a file, `docker run --env-file .env …` accepts the same `.env` format.
+
+To update:
+
+```bash
+docker pull ghcr.io/bradqui/lumivision:latest
+docker stop lumivision && docker rm lumivision
+docker run …   # same command as above — state lives in ./data, not the container
+```
+
+This also covers container managers like Portainer, Unraid, or Synology: point them at
+`ghcr.io/bradqui/lumivision:latest`, map a volume to `/data`, map a host port of your
+choice (e.g. `8018`) to **container port 8000**, and set the environment variables.
+(The app always listens on 8000 inside the container; `8018` in the examples is the
+host-side port your reverse proxy talks to.)
 
 ## Configuration (`.env`)
 
