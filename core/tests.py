@@ -453,3 +453,36 @@ class SecurityTests(MediaTestCase):
         self.assertIsNotNone(
             parse_embed("https://youtu.be/dQw4w9WgXcQ")
         )
+
+
+@override_settings(AXES_ENABLED=True, AXES_FAILURE_LIMIT=3)
+class LoginRateLimitTests(MediaTestCase):
+    def test_lockout_after_repeated_failures(self):
+        make_user("target")
+        c = Client()
+        for _ in range(3):
+            r = c.post(
+                "/accounts/login/",
+                {"username": "target", "password": "wrong-pass"},
+            )
+        # Locked out now — even the correct password is refused.
+        r = c.post(
+            "/accounts/login/",
+            {"username": "target", "password": "Test-Pass-123"},
+        )
+        self.assertEqual(r.status_code, 429)
+
+    def test_other_account_unaffected_by_lockout(self):
+        make_user("target")
+        make_user("bystander")
+        c = Client()
+        for _ in range(3):
+            c.post(
+                "/accounts/login/",
+                {"username": "target", "password": "wrong-pass"},
+            )
+        r = Client().post(
+            "/accounts/login/",
+            {"username": "bystander", "password": "Test-Pass-123"},
+        )
+        self.assertEqual(r.status_code, 302)

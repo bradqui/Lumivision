@@ -87,7 +87,9 @@ def join(request, token):
                 Invite.objects.filter(pk=invite.pk).update(
                     use_count=F("use_count") + 1
                 )
-            login(request, user)
+            login(
+                request, user, backend="django.contrib.auth.backends.ModelBackend"
+            )
             messages.success(request, f"Welcome to Lumivision, {user.username}!")
             return redirect("dashboard")
     else:

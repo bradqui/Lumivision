@@ -9,6 +9,8 @@ Lumivision settings — configured via environment variables for Docker:
 """
 
 import os
+import sys
+from datetime import timedelta
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -57,6 +59,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.forms",
+    "axes",
     "core",
 ]
 
@@ -73,7 +76,26 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
+
+# ---- Login rate limiting (django-axes) ----
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+AXES_FAILURE_LIMIT = int(os.environ.get("LUMIVISION_LOGIN_ATTEMPT_LIMIT", "6"))
+AXES_COOLOFF_TIME = timedelta(
+    minutes=int(os.environ.get("LUMIVISION_LOGIN_COOLOFF_MINUTES", "15"))
+)
+AXES_RESET_ON_SUCCESS = True
+# Lock the username+IP pair: brute force from one address is blocked without
+# letting an attacker lock a victim out from everywhere.
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
+AXES_LOCKOUT_TEMPLATE = "auth/locked_out.html"
+# The test suite drives Client.login() directly; axes is exercised by its
+# own dedicated test via override_settings.
+AXES_ENABLED = "test" not in sys.argv
 
 ROOT_URLCONF = "lumivision.urls"
 

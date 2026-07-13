@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Too many attempts — Lumivision{% endblock %}
+{% block content %}
+<div class="lv-auth-wrap">
+    <div class="lv-panel lv-auth-card">
+        <h1>Too Many Attempts</h1>
+        <p class="sub">
+            Sign-in for this account has been temporarily locked after repeated
+            failed attempts.<br><br>
+            Wait {{ cooloff_timedelta|default:"a few minutes" }} and try again.
+        </p>
+        <a class="btn btn-ghost" href="{% url 'login' %}">Back to sign in</a>
+    </div>
+</div>
+{% endblock %}

@@ -70,6 +70,8 @@ Database migrations run automatically at container start.
 | `LUMIVISION_WORKERS` | `3` | Gunicorn worker count |
 | `LUMIVISION_TIME_ZONE` | `UTC` | Display timezone |
 | `LUMIVISION_COOKIE_SECURE` | `1` | Set `0` only if serving over plain HTTP (e.g. LAN-only) |
+| `LUMIVISION_LOGIN_ATTEMPT_LIMIT` | `6` | Failed sign-ins (per account+IP) before temporary lockout |
+| `LUMIVISION_LOGIN_COOLOFF_MINUTES` | `15` | How long a lockout lasts |
 | `LUMIVISION_DEBUG` | `0` | Set `1` only for local development |
 
 ## Running behind a reverse proxy
@@ -175,6 +177,11 @@ publishes it to GHCR as `latest`, `X.Y`, and `X.Y.Z`:
 ```bash
 git tag v1.0.0 && git push origin v1.0.0
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and pull requests welcome; please
+use GitHub's private vulnerability reporting for security issues.
 
 ## License
 
