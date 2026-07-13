@@ -20,6 +20,7 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 (DATA_DIR / "media").mkdir(parents=True, exist_ok=True)
 
 DEBUG = os.environ.get("LUMIVISION_DEBUG", "0") == "1"
+TESTING = "test" in sys.argv
 
 SECRET_KEY = os.environ.get("LUMIVISION_SECRET_KEY", "").strip()
 if not SECRET_KEY:
@@ -95,7 +96,7 @@ AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 AXES_LOCKOUT_TEMPLATE = "auth/locked_out.html"
 # The test suite drives Client.login() directly; axes is exercised by its
 # own dedicated test via override_settings.
-AXES_ENABLED = "test" not in sys.argv
+AXES_ENABLED = not TESTING
 
 ROOT_URLCONF = "lumivision.urls"
 
@@ -155,9 +156,11 @@ MEDIA_ROOT = DATA_DIR / "media"
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {
+        # Manifest storage needs collectstatic to have run; use plain
+        # storage in debug and under the test runner.
         "BACKEND": (
             "django.contrib.staticfiles.storage.StaticFilesStorage"
-            if DEBUG
+            if DEBUG or TESTING
             else "whitenoise.storage.CompressedManifestStaticFilesStorage"
         )
     },
