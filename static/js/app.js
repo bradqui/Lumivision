@@ -294,6 +294,8 @@
             f.src = item.src + (item.src.indexOf("?") === -1 ? "?autoplay=1" : "&autoplay=1");
             f.allow = "autoplay; fullscreen; picture-in-picture; encrypted-media";
             f.allowFullscreen = true;
+            f.referrerPolicy = "strict-origin-when-cross-origin"; // YouTube needs an origin referrer
+
             wrap.appendChild(f);
             media.appendChild(wrap);
         } else if (item.kind === "link") {

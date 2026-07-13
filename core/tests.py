@@ -425,6 +425,13 @@ class SecurityTests(MediaTestCase):
         r = Client().get("/healthz")
         self.assertEqual(r.status_code, 200)
 
+    def test_referrer_policy_allows_youtube_embeds(self):
+        # same-origin (Django's default) breaks the YouTube player (error 153)
+        r = Client().get("/accounts/login/")
+        self.assertEqual(
+            r.headers.get("Referrer-Policy"), "strict-origin-when-cross-origin"
+        )
+
     def test_oversized_body_rejected_early(self):
         r = self.c.post(
             "/assets/new/", {"x": "y"},

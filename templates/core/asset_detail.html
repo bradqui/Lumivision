@@ -38,6 +38,7 @@
     {% elif asset.kind == 'embed' and asset.embed_src %}
         <div style="max-width:1000px; margin:0 auto; aspect-ratio:16/9; border-radius:12px; overflow:hidden;">
             <iframe src="{{ asset.embed_src }}" style="width:100%; height:100%; border:0;"
+                    referrerpolicy="strict-origin-when-cross-origin"
                     allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen></iframe>
         </div>
     {% elif asset.kind == 'link' %}

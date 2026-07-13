@@ -49,6 +49,11 @@ CSRF_TRUSTED_ORIGINS = [
     if o.strip()
 ]
 
+# Django's default Referrer-Policy (same-origin) strips the Referer from the
+# YouTube embed iframe, which the player rejects with "configuration error
+# (153)". strict-origin-when-cross-origin sends only the origin cross-site.
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
 # Honor X-Forwarded-Proto from the reverse proxy (nginx/Apache/Caddy/…).
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
