@@ -109,6 +109,27 @@ host-side port your reverse proxy talks to.)
 | `LUMIVISION_LOGIN_COOLOFF_MINUTES` | `15` | How long a lockout lasts |
 | `LUMIVISION_DEBUG` | `0` | Set `1` only for local development |
 
+## Running a second instance (demo, staging, …)
+
+Multiple Lumivision instances can share one host, but Docker namespaces **compose
+project names** and **container names** host-wide — and compose derives its project
+name from the *directory basename*. Two instances in directories both named
+`lumivision` (even under different users) are treated as the *same* project, and
+`docker compose up` for one will take over the other's containers.
+
+For each additional instance, use its own directory with its own `docker-compose.yml`,
+`.env`, and `data/`, and set three values in that instance's `.env`:
+
+```dotenv
+COMPOSE_PROJECT_NAME=lumivision-demo    # unique per instance
+LUMIVISION_CONTAINER_NAME=lumivision-demo
+LUMIVISION_HOST_PORT=8019               # any free host port
+```
+
+Also avoid `--remove-orphans` unless you're sure the project namespace is clean — it
+deletes containers compose believes are abandoned, which is exactly the failure mode
+of a project-name collision.
+
 ## Running behind a reverse proxy
 
 Lumivision expects to sit behind your web server, which terminates TLS and proxies to the

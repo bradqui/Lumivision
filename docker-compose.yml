@@ -1,7 +1,7 @@
 services:
   lumivision:
     image: ghcr.io/bradqui/lumivision:latest
-    container_name: lumivision
+    container_name: ${LUMIVISION_CONTAINER_NAME:-lumivision}
     restart: unless-stopped
     ports:
       - "${LUMIVISION_HOST_PORT:-8018}:8000"
