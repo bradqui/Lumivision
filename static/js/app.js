@@ -61,6 +61,16 @@
         });
     }
 
+    /* ---------------- live theme preview (account page) ---------------- */
+    document.querySelectorAll(".lv-theme-options input[name='theme']").forEach((input) => {
+        input.addEventListener("change", () => {
+            document.body.classList.forEach((cls) => {
+                if (cls.indexOf("theme-") === 0) document.body.classList.remove(cls);
+            });
+            document.body.classList.add("theme-" + input.value);
+        });
+    });
+
     /* ---------------- scroll reveal ---------------- */
     const revealObserver = new IntersectionObserver(
         (entries) => entries.forEach((e) => {
