@@ -86,8 +86,10 @@ docker run …   # same command as above — state lives in ./data, not the cont
 ```
 
 This also covers container managers like Portainer, Unraid, or Synology: point them at
-`ghcr.io/bradqui/lumivision:latest`, map a volume to `/data`, publish port 8000, and set
-the environment variables.
+`ghcr.io/bradqui/lumivision:latest`, map a volume to `/data`, map a host port of your
+choice (e.g. `8018`) to **container port 8000**, and set the environment variables.
+(The app always listens on 8000 inside the container; `8018` in the examples is the
+host-side port your reverse proxy talks to.)
 
 ## Configuration (`.env`)
 
