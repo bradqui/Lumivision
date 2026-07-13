@@ -1289,24 +1289,18 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
     user-select: none;
     transition: all 0.3s var(--ease);
 }
-.lv-clear-toggle input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-    width: 0;
-    height: 0;
-}
+.lv-clear-toggle input { display: none; }
 .lv-clear-toggle .when-on { display: none; }
-.lv-clear-toggle::before {
-    content: '';
-    width: 8px;
-    height: 8px;
+.lv-clear-toggle .dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     border: 1.5px solid var(--danger);
     flex: none;
     transition: background 0.25s ease, box-shadow 0.25s ease;
 }
-.lv-clear-toggle:has(input:checked)::before {
+.lv-clear-toggle:has(input:checked) .dot {
     background: var(--danger);
     box-shadow: 0 0 8px rgba(224, 106, 122, 0.8);
 }
