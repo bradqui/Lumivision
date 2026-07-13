@@ -4,7 +4,7 @@ lumivision.css; hex values here are only used to draw picker swatches."""
 THEMES = [
     {
         "key": "purple-gold-dark",
-        "label": "Purple & Gold (dark)",
+        "label": "Royal (dark)",
         "hex1": "#7E74D4",
         "hex2": "#F2C478",
         "bg": "#07080D",

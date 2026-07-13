@@ -17,7 +17,7 @@ animated transitions) inspired by the Luminatus visual language.
   Open Graph previews
 - **Themes**: 7 built-in themes (4 dark, 3 light). Each user picks an app-wide theme on
   their Account page; board creators can force a theme on a board for every viewer.
-  Default: Purple & Gold (dark)
+  Default: Royal (dark)
 - Assets can live on **multiple boards** at once and carry **categories** used to filter
   within a board (animated chip filtering)
 - **Masonry layout** with entrance animations, hover glow, and a **lightbox** viewer with
