@@ -106,6 +106,11 @@
         masonry.querySelectorAll(".lv-card:not(.filtered-out)").forEach(layoutCard);
     }
     if (masonry) {
+        // Images are natively draggable and would hijack the card's reorder
+        // drag (and read as a file drop on release). Grab-anywhere instead.
+        masonry.querySelectorAll(".lv-card img").forEach((img) =>
+            img.setAttribute("draggable", "false")
+        );
         layoutMasonry();
         window.addEventListener("resize", () => {
             clearTimeout(window.__lvResize);
@@ -395,8 +400,15 @@
         const uploadUrl = dropzone.dataset.uploadUrl;
         const progress = document.getElementById("lv-upload-progress");
         let dragDepth = 0;
+        let internalDrag = false;
+
+        // Drags that start inside the page (card reorder, stray image drags)
+        // must never read as an incoming file upload.
+        window.addEventListener("dragstart", () => { internalDrag = true; });
+        window.addEventListener("dragend", () => { internalDrag = false; });
 
         window.addEventListener("dragenter", (ev) => {
+            if (internalDrag) return;
             if (!ev.dataTransfer || !Array.from(ev.dataTransfer.types).includes("Files")) return;
             dragDepth++;
             dropzone.classList.add("active");
@@ -410,6 +422,7 @@
             ev.preventDefault();
             dragDepth = 0;
             dropzone.classList.remove("active");
+            if (internalDrag) { internalDrag = false; return; }
             const files = Array.from(ev.dataTransfer.files || []);
             if (!files.length) return;
             const fd = new FormData();
