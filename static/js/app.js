@@ -106,6 +106,11 @@
         masonry.querySelectorAll(".lv-card:not(.filtered-out)").forEach(layoutCard);
     }
     if (masonry) {
+        // Images are natively draggable and would hijack the card's reorder
+        // drag (and read as a file drop on release). Grab-anywhere instead.
+        masonry.querySelectorAll(".lv-card img").forEach((img) =>
+            img.setAttribute("draggable", "false")
+        );
         layoutMasonry();
         window.addEventListener("resize", () => {
             clearTimeout(window.__lvResize);
@@ -130,20 +135,79 @@
         window.addEventListener("load", layoutMasonry);
     }
 
-    /* ---------------- category filter ---------------- */
+    /* ---------------- category filter (multi-select) ---------------- */
     const chips = document.querySelectorAll(".lv-chip[data-cat]");
-    chips.forEach((chip) => {
-        chip.addEventListener("click", () => {
-            chips.forEach((c) => c.classList.remove("active"));
-            chip.classList.add("active");
-            const cat = chip.dataset.cat;
+    if (chips.length) {
+        const allChip = document.querySelector('.lv-chip[data-cat="*"]');
+        const clearBtn = document.querySelector(".lv-chips-clear");
+
+        function applyFilter() {
+            const active = Array.from(chips)
+                .filter((c) => c.dataset.cat !== "*" && c.classList.contains("active"))
+                .map((c) => c.dataset.cat);
+            if (allChip) allChip.classList.toggle("active", active.length === 0);
+            if (clearBtn) clearBtn.hidden = active.length === 0;
             document.querySelectorAll(".lv-card[data-cats]").forEach((card) => {
                 const cats = card.dataset.cats.split("|").filter(Boolean);
-                const show = cat === "*" || cats.indexOf(cat) !== -1;
+                // Show cards matching ANY selected category; none selected = all.
+                const show =
+                    active.length === 0 ||
+                    active.some((a) => cats.indexOf(a) !== -1);
                 card.classList.toggle("filtered-out", !show);
             });
             layoutMasonry();
+        }
+        function clearFilter() {
+            chips.forEach((c) => {
+                if (c.dataset.cat !== "*") c.classList.remove("active");
+            });
+            applyFilter();
+        }
+
+        chips.forEach((chip) => {
+            chip.addEventListener("click", () => {
+                if (chip.dataset.cat === "*") return clearFilter();
+                chip.classList.toggle("active");
+                applyFilter();
+            });
         });
+        if (clearBtn) clearBtn.addEventListener("click", clearFilter);
+    }
+
+    /* ---------------- category suggestion pills ---------------- */
+    // One-tap reuse of categories already on the board: toggles the name
+    // in and out of the comma-separated text input it belongs to.
+    document.querySelectorAll(".lv-cat-suggest").forEach((box) => {
+        const scope = box.closest("form") || document;
+        const input = scope.querySelector(
+            '[name="' + box.dataset.suggestFor + '"]'
+        );
+        if (!input) return;
+        const parse = () =>
+            input.value.split(",").map((s) => s.trim()).filter(Boolean);
+        const sync = () => {
+            const have = parse().map((s) => s.toLowerCase());
+            box.querySelectorAll("[data-cat-name]").forEach((b) =>
+                b.classList.toggle(
+                    "active",
+                    have.indexOf(b.dataset.catName.toLowerCase()) !== -1
+                )
+            );
+        };
+        box.querySelectorAll("[data-cat-name]").forEach((btn) =>
+            btn.addEventListener("click", () => {
+                const names = parse();
+                const idx = names.findIndex(
+                    (n) => n.toLowerCase() === btn.dataset.catName.toLowerCase()
+                );
+                if (idx === -1) names.push(btn.dataset.catName);
+                else names.splice(idx, 1);
+                input.value = names.join(", ");
+                sync();
+            })
+        );
+        input.addEventListener("input", sync);
+        sync();
     });
 
     /* ---------------- generic overlays ---------------- */
@@ -294,6 +358,8 @@
             f.src = item.src + (item.src.indexOf("?") === -1 ? "?autoplay=1" : "&autoplay=1");
             f.allow = "autoplay; fullscreen; picture-in-picture; encrypted-media";
             f.allowFullscreen = true;
+            f.referrerPolicy = "strict-origin-when-cross-origin"; // YouTube needs an origin referrer
+
             wrap.appendChild(f);
             media.appendChild(wrap);
         } else if (item.kind === "link") {
@@ -387,14 +453,89 @@
         })
     );
 
+    /* ---------------- card action menus (kebab dropdown) ---------------- */
+    (function () {
+        // Cards use overflow:hidden + backdrop-filter, both of which would clip
+        // and re-anchor an absolutely/fixed-positioned child. Relocate each menu
+        // to <body> (which carries the theme class) and position it in JS.
+        document
+            .querySelectorAll(".lv-card-actions .lv-menu")
+            .forEach((menu) => document.body.appendChild(menu));
+
+        let open = null; // { trigger, menu }
+
+        function close() {
+            if (!open) return;
+            open.menu.hidden = true;
+            open.trigger.setAttribute("aria-expanded", "false");
+            open = null;
+        }
+
+        function place(trigger, menu) {
+            const r = trigger.getBoundingClientRect();
+            menu.hidden = false; // reveal so we can measure it
+            const mw = menu.offsetWidth;
+            const mh = menu.offsetHeight;
+            const pad = 8;
+            let left = r.right - mw; // right-align to the trigger
+            left = Math.max(pad, Math.min(left, window.innerWidth - mw - pad));
+            let top = r.bottom + 6; // prefer below the trigger
+            if (top + mh > window.innerHeight - pad) top = r.top - mh - 6; // flip above
+            top = Math.max(pad, top);
+            menu.style.left = left + "px";
+            menu.style.top = top + "px";
+        }
+
+        document.querySelectorAll(".lv-menu-trigger").forEach((trigger) => {
+            const menu = document.getElementById(
+                trigger.getAttribute("aria-controls")
+            );
+            if (!menu) return;
+            trigger.addEventListener("click", (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                if (open && open.menu === menu) {
+                    close();
+                    return;
+                }
+                close();
+                place(trigger, menu);
+                trigger.setAttribute("aria-expanded", "true");
+                open = { trigger, menu };
+            });
+            // Choosing any item dismisses the menu (forms still submit; their
+            // confirm handler runs independently on the submit event).
+            menu.querySelectorAll(".lv-menu-item").forEach((item) =>
+                item.addEventListener("click", () => close())
+            );
+        });
+
+        document.addEventListener("click", (ev) => {
+            if (open && !ev.target.closest(".lv-menu") && !ev.target.closest(".lv-menu-trigger"))
+                close();
+        });
+        document.addEventListener("keydown", (ev) => {
+            if (ev.key === "Escape") close();
+        });
+        window.addEventListener("scroll", close, true);
+        window.addEventListener("resize", close);
+    })();
+
     /* ---------------- drag & drop upload ---------------- */
     const dropzone = document.getElementById("lv-dropzone");
     if (dropzone) {
         const uploadUrl = dropzone.dataset.uploadUrl;
         const progress = document.getElementById("lv-upload-progress");
         let dragDepth = 0;
+        let internalDrag = false;
+
+        // Drags that start inside the page (card reorder, stray image drags)
+        // must never read as an incoming file upload.
+        window.addEventListener("dragstart", () => { internalDrag = true; });
+        window.addEventListener("dragend", () => { internalDrag = false; });
 
         window.addEventListener("dragenter", (ev) => {
+            if (internalDrag) return;
             if (!ev.dataTransfer || !Array.from(ev.dataTransfer.types).includes("Files")) return;
             dragDepth++;
             dropzone.classList.add("active");
@@ -408,6 +549,7 @@
             ev.preventDefault();
             dragDepth = 0;
             dropzone.classList.remove("active");
+            if (internalDrag) { internalDrag = false; return; }
             const files = Array.from(ev.dataTransfer.files || []);
             if (!files.length) return;
             const fd = new FormData();

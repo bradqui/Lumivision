@@ -38,11 +38,12 @@
     {% elif asset.kind == 'embed' and asset.embed_src %}
         <div style="max-width:1000px; margin:0 auto; aspect-ratio:16/9; border-radius:12px; overflow:hidden;">
             <iframe src="{{ asset.embed_src }}" style="width:100%; height:100%; border:0;"
+                    referrerpolicy="strict-origin-when-cross-origin"
                     allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen></iframe>
         </div>
     {% elif asset.kind == 'link' %}
-        {% if asset.link_image_url %}
-            <img src="{{ asset.link_image_url }}" alt="" style="max-width:100%; max-height:50vh; border-radius:12px;">
+        {% if asset.preview_url %}
+            <img src="{{ asset.preview_url }}" alt="" style="max-width:100%; max-height:50vh; border-radius:12px;">
         {% endif %}
         <p style="margin-top:1.2rem;">
             <a class="btn btn-gold" href="{{ asset.link_url }}" target="_blank" rel="noopener">Visit link ↗</a>

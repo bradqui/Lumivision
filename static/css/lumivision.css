@@ -542,6 +542,7 @@ select.lv-input option:checked {
 .lv-board-picker label:has(input:checked) {
     color: var(--on-accent);
     background: linear-gradient(90deg, var(--purple), var(--gold));
+    background-origin: border-box;
     border-color: transparent;
     box-shadow: 0 0 14px rgba(var(--a1), 0.45);
 }
@@ -810,8 +811,61 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
 .lv-chip.active {
     color: var(--on-accent);
     background: linear-gradient(90deg, var(--purple), var(--gold));
+    background-origin: border-box; /* fill under the transparent border — no edge sliver */
     border-color: transparent;
     box-shadow: 0 0 16px rgba(var(--a1),0.5);
+}
+.lv-chips-clear { border-style: dashed; }
+.lv-chips-clear:hover { color: var(--danger); border-color: var(--danger); }
+
+/* category suggestion pills under the categories text input */
+.lv-cat-suggest {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+}
+.lv-cat-suggest .lv-chip { padding: 0.24rem 0.75rem; font-size: 0.7rem; }
+
+/* toggle switch (site settings) */
+.lv-switch-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    cursor: pointer;
+    max-width: 640px;
+}
+.lv-switch { display: none; }
+.lv-switch-row .track {
+    flex-shrink: 0;
+    width: 44px;
+    height: 24px;
+    margin-top: 0.1rem;
+    border-radius: 24px;
+    border: 1px solid var(--glass-border-hi);
+    background: rgba(var(--panel-rgb),0.6);
+    position: relative;
+    transition: background 0.25s ease, border-color 0.25s ease;
+}
+.lv-switch-row .knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    transition: transform 0.25s var(--ease), background 0.25s ease;
+}
+.lv-switch:checked + .track {
+    background: linear-gradient(90deg, var(--purple), var(--gold));
+    background-origin: border-box;
+    border-color: transparent;
+    box-shadow: 0 0 14px rgba(var(--a1),0.5);
+}
+.lv-switch:checked + .track .knob {
+    transform: translateX(20px);
+    background: #fff;
 }
 
 /* ---------- masonry asset grid ---------- */
@@ -844,7 +898,13 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
 .lv-card.drag-over { border-color: var(--gold); box-shadow: 0 0 20px rgba(var(--a2),0.4); }
 
 .lv-card-media { position: relative; width: 100%; display: block; background: rgb(var(--panel-rgb)); }
-.lv-card-media img { width: 100%; display: block; transition: transform 0.6s var(--ease); }
+.lv-card-media img {
+    width: 100%;
+    display: block;
+    transition: transform 0.6s var(--ease);
+    -webkit-user-drag: none; /* keep the card's reorder drag in charge */
+    user-select: none;
+}
 .lv-card:hover .lv-card-media img { transform: scale(1.045); }
 .lv-card-media .play-badge {
     position: absolute;
@@ -930,6 +990,63 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
 .lv-iconbtn:hover { color: var(--gold); background: rgba(var(--a2),0.08); transform: scale(1.15); }
 .lv-iconbtn.danger:hover { color: var(--danger); background: rgba(224,106,122,0.1); }
 .lv-link-domain { color: var(--gold); font-size: 0.72rem; letter-spacing: 0.5px; }
+
+/* card action menu (kebab dropdown) — relocated to <body> and positioned in JS */
+.lv-menu-trigger { font-size: 1.2rem; letter-spacing: 1px; padding: 0.05rem 0.4rem; }
+.lv-menu-trigger[aria-expanded="true"] {
+    color: var(--gold);
+    background: rgba(var(--a2),0.1);
+    transform: none;
+}
+.lv-menu {
+    position: fixed;
+    z-index: 1050;
+    min-width: 196px;
+    padding: 0.35rem;
+    border-radius: 12px;
+    background: var(--glass-bg-solid);
+    border: 1px solid var(--glass-border-hi);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 18px 44px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    animation: menuIn 0.16s var(--ease);
+}
+.lv-menu[hidden] { display: none; }
+.lv-menu form { margin: 0; }
+.lv-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.85rem;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+.lv-menu-item .ic { font-size: 0.98rem; width: 1.2rem; text-align: center; flex-shrink: 0; }
+.lv-menu-item:hover, .lv-menu-item:focus-visible {
+    background: rgba(var(--a2),0.12);
+    color: var(--gold);
+    outline: none;
+}
+.lv-menu-item.danger:hover, .lv-menu-item.danger:focus-visible {
+    background: rgba(224,106,122,0.14);
+    color: var(--danger);
+}
+@keyframes menuIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 /* empty state */
 .lv-empty {
@@ -1030,6 +1147,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
 .lv-tab.active {
     color: var(--on-accent);
     background: linear-gradient(90deg, var(--purple), var(--gold));
+    background-origin: border-box;
     border-color: transparent;
 }
 .lv-tabpane { display: none; }

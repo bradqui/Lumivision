@@ -43,6 +43,7 @@
     {% for cat in categories %}
         <button class="lv-chip" data-cat="{{ cat.slug }}">{{ cat.name }}</button>
     {% endfor %}
+    <button class="lv-chip lv-chips-clear" type="button" hidden>✕ Clear filters</button>
 </div>
 {% endif %}
 
@@ -83,23 +84,31 @@
                 <div class="lv-card-foot">
                     <span class="lv-owner">{% include "core/_avatar.html" with person=asset.owner size="sm" %} {{ asset.owner.username }}</span>
                     <div class="lv-card-actions">
-                        <button class="lv-iconbtn" title="Copy link" data-copy="{% url 'asset_detail' asset.pk %}">🔗</button>
-                        {% if asset.user_can_delete %}
-                        <a class="lv-iconbtn" title="Edit asset" href="{% url 'asset_edit' asset.pk %}?next={{ board.get_absolute_url|urlencode }}">✎</a>
-                        {% endif %}
-                        {% if asset.user_can_remove %}
-                        <form method="post" action="{% url 'board_asset_remove' board.slug asset.pk %}" class="lv-inline-form" data-confirm="Remove this asset from “{{ board.name }}”? (The asset itself is kept.)">
-                            {% csrf_token %}
-                            <button type="submit" class="lv-iconbtn" title="Remove from board">⤫</button>
-                        </form>
-                        {% endif %}
-                        {% if asset.user_can_delete %}
-                        <form method="post" action="{% url 'asset_delete' asset.pk %}" class="lv-inline-form" data-confirm="Delete this asset everywhere? Its file will be permanently removed from the server.">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ board.get_absolute_url }}">
-                            <button type="submit" class="lv-iconbtn danger" title="Delete asset">🗑</button>
-                        </form>
-                        {% endif %}
+                        <button type="button" class="lv-iconbtn lv-menu-trigger" title="Actions"
+                                aria-haspopup="true" aria-expanded="false" aria-controls="lv-menu-{{ asset.pk }}">⋯</button>
+                        <div class="lv-menu" id="lv-menu-{{ asset.pk }}" role="menu" hidden>
+                            <button type="button" class="lv-menu-item" role="menuitem" data-copy="{% url 'asset_detail' asset.pk %}">
+                                <span class="ic">🔗</span> Copy link
+                            </button>
+                            {% if asset.user_can_delete %}
+                            <a class="lv-menu-item" role="menuitem" href="{% url 'asset_edit' asset.pk %}?next={{ board.get_absolute_url|urlencode }}">
+                                <span class="ic">✎</span> Edit
+                            </a>
+                            {% endif %}
+                            {% if asset.user_can_remove %}
+                            <form method="post" action="{% url 'board_asset_remove' board.slug asset.pk %}" class="lv-inline-form" data-confirm="Remove this asset from “{{ board.name }}”? (The asset itself is kept.)">
+                                {% csrf_token %}
+                                <button type="submit" class="lv-menu-item" role="menuitem"><span class="ic">⤫</span> Remove from board</button>
+                            </form>
+                            {% endif %}
+                            {% if asset.user_can_delete %}
+                            <form method="post" action="{% url 'asset_delete' asset.pk %}" class="lv-inline-form" data-confirm="Delete this asset everywhere? Its file will be permanently removed from the server.">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ board.get_absolute_url }}">
+                                <button type="submit" class="lv-menu-item danger" role="menuitem"><span class="ic">🗑</span> Delete everywhere</button>
+                            </form>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -187,7 +196,12 @@
             <div class="lv-field">
                 <label>Categories</label>
                 <input type="text" name="categories" class="lv-input" placeholder="Travel, Home, Fitness…">
-                <p class="lv-help">Comma-separated — used to filter within a board.</p>
+                {% if categories %}
+                <div class="lv-cat-suggest" data-suggest-for="categories">
+                    {% for c in categories %}<button type="button" class="lv-chip" data-cat-name="{{ c.name }}">{{ c.name }}</button>{% endfor %}
+                </div>
+                {% endif %}
+                <p class="lv-help">Comma-separated — used to filter within a board. Tap a pill to reuse one already on this board.</p>
             </div>
             <div class="lv-field">
                 <label>Boards</label>

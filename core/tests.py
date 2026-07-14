@@ -9,7 +9,7 @@ from django.core.files.base import ContentFile
 from django.test import Client, TestCase, override_settings
 from PIL import Image
 
-from .models import Asset, Board, BoardAsset, Invite, User
+from .models import Asset, Board, BoardAsset, Invite, SiteSettings, User
 from .utils import parse_embed
 
 MEDIA_TMP = tempfile.mkdtemp(prefix="lumivision-test-media-")
@@ -425,6 +425,13 @@ class SecurityTests(MediaTestCase):
         r = Client().get("/healthz")
         self.assertEqual(r.status_code, 200)
 
+    def test_referrer_policy_allows_youtube_embeds(self):
+        # same-origin (Django's default) breaks the YouTube player (error 153)
+        r = Client().get("/accounts/login/")
+        self.assertEqual(
+            r.headers.get("Referrer-Policy"), "strict-origin-when-cross-origin"
+        )
+
     def test_oversized_body_rejected_early(self):
         r = self.c.post(
             "/assets/new/", {"x": "y"},
@@ -486,3 +493,123 @@ class LoginRateLimitTests(MediaTestCase):
             {"username": "bystander", "password": "Test-Pass-123"},
         )
         self.assertEqual(r.status_code, 302)
+
+
+class PreviewReplaceTests(MediaTestCase):
+    def setUp(self):
+        self.member = make_user("member")
+        self.c = login("member")
+        self.board = Board.objects.create(name="Mine", owner=self.member)
+
+    def _make_link_asset(self):
+        with patch("core.views.fetch_og") as mock_og:
+            mock_og.return_value = {
+                "title": "Example",
+                "description": "d",
+                "image": "https://example.com/x.jpg",
+            }
+            self.c.post(
+                "/assets/new/",
+                {"kind": "link", "link_url": "https://example.com/",
+                 "boards": [self.board.pk], "title": "", "description": "",
+                 "categories": ""},
+            )
+        return Asset.objects.latest("pk")
+
+    def test_link_asset_offers_and_applies_replacement(self):
+        asset = self._make_link_asset()
+        r = self.c.get(f"/a/{asset.pk}/edit/")
+        self.assertIn(b"Replace preview image", r.content)
+        r = self.c.post(
+            f"/a/{asset.pk}/edit/",
+            {"title": "", "description": "", "categories": "",
+             "boards": [self.board.pk], "custom_thumb": image_file("p.png")},
+        )
+        self.assertEqual(r.status_code, 302)
+        asset.refresh_from_db()
+        self.assertTrue(asset.thumb)
+        # The replaced preview beats the fetched OG image everywhere.
+        self.assertEqual(asset.preview_url, asset.thumb.url)
+
+    def test_image_asset_keeps_generated_thumbnail(self):
+        self.c.post(
+            "/assets/new/",
+            {"kind": "image", "boards": [self.board.pk], "file": image_file(),
+             "title": "", "description": "", "categories": ""},
+        )
+        asset = Asset.objects.latest("pk")
+        original_thumb = asset.thumb.name
+        r = self.c.get(f"/a/{asset.pk}/edit/")
+        self.assertNotIn(b"Replace preview image", r.content)
+        # Even a hand-crafted POST can't replace an image's thumbnail.
+        self.c.post(
+            f"/a/{asset.pk}/edit/",
+            {"title": "", "description": "", "categories": "",
+             "boards": [self.board.pk], "custom_thumb": image_file("p.png")},
+        )
+        asset.refresh_from_db()
+        self.assertEqual(asset.thumb.name, original_thumb)
+
+
+class CategorySuggestTests(MediaTestCase):
+    def setUp(self):
+        self.member = make_user("member")
+        self.c = login("member")
+        self.board = Board.objects.create(name="Mine", owner=self.member)
+        self.c.post(
+            "/assets/new/",
+            {"kind": "image", "boards": [self.board.pk], "file": image_file(),
+             "title": "", "description": "", "categories": "Travel, Fitness"},
+        )
+        self.asset = Asset.objects.latest("pk")
+
+    def test_board_page_offers_existing_categories(self):
+        r = self.c.get(f"/b/{self.board.slug}/")
+        self.assertIn(b"lv-cat-suggest", r.content)
+        self.assertIn(b'data-cat-name="Travel"', r.content)
+
+    def test_edit_page_suggests_categories_from_its_boards(self):
+        r = self.c.get(f"/a/{self.asset.pk}/edit/")
+        self.assertIn(b'data-cat-name="Fitness"', r.content)
+
+
+class PublicSiteTests(MediaTestCase):
+    def setUp(self):
+        self.admin = make_user("admin", User.Role.ADMIN)
+        self.member = make_user("member")
+        self.public = Board.objects.create(
+            name="OpenBoard", owner=self.member, visibility=Board.Visibility.PUBLIC
+        )
+        self.private = Board.objects.create(
+            name="SecretBoard", owner=self.member,
+            visibility=Board.Visibility.PRIVATE,
+        )
+        self.registered = Board.objects.create(name="SharedBoard", owner=self.member)
+
+    def test_root_redirects_guests_by_default(self):
+        self.assertEqual(Client().get("/").status_code, 302)
+
+    def test_public_site_lists_only_public_boards(self):
+        SiteSettings.objects.update_or_create(pk=1, defaults={"public_site": True})
+        r = Client().get("/")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(b"OpenBoard", r.content)
+        self.assertNotIn(b"SecretBoard", r.content)
+        self.assertNotIn(b"SharedBoard", r.content)
+        self.assertNotIn(b"New board", r.content)
+
+    def test_members_still_see_everything(self):
+        SiteSettings.objects.update_or_create(pk=1, defaults={"public_site": True})
+        r = login("member").get("/")
+        self.assertIn(b"SecretBoard", r.content)
+        self.assertIn(b"SharedBoard", r.content)
+
+    def test_settings_page_is_admin_only(self):
+        self.assertEqual(login("member").get("/manage/settings/").status_code, 403)
+        c = login("admin")
+        self.assertEqual(c.get("/manage/settings/").status_code, 200)
+        r = c.post("/manage/settings/", {"public_site": "1"})
+        self.assertEqual(r.status_code, 302)
+        self.assertTrue(SiteSettings.load().public_site)
+        c.post("/manage/settings/", {})  # unchecked box turns it back off
+        self.assertFalse(SiteSettings.load().public_site)
