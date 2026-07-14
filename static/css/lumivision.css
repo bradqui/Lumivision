@@ -542,6 +542,7 @@ select.lv-input option:checked {
 .lv-board-picker label:has(input:checked) {
     color: var(--on-accent);
     background: linear-gradient(90deg, var(--purple), var(--gold));
+    background-origin: border-box;
     border-color: transparent;
     box-shadow: 0 0 14px rgba(var(--a1), 0.45);
 }
@@ -810,6 +811,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
 .lv-chip.active {
     color: var(--on-accent);
     background: linear-gradient(90deg, var(--purple), var(--gold));
+    background-origin: border-box; /* fill under the transparent border — no edge sliver */
     border-color: transparent;
     box-shadow: 0 0 16px rgba(var(--a1),0.5);
 }
@@ -857,6 +859,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
 }
 .lv-switch:checked + .track {
     background: linear-gradient(90deg, var(--purple), var(--gold));
+    background-origin: border-box;
     border-color: transparent;
     box-shadow: 0 0 14px rgba(var(--a1),0.5);
 }
@@ -1144,6 +1147,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
 .lv-tab.active {
     color: var(--on-accent);
     background: linear-gradient(90deg, var(--purple), var(--gold));
+    background-origin: border-box;
     border-color: transparent;
 }
 .lv-tabpane { display: none; }
