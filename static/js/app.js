@@ -394,6 +394,74 @@
         })
     );
 
+    /* ---------------- card action menus (kebab dropdown) ---------------- */
+    (function () {
+        // Cards use overflow:hidden + backdrop-filter, both of which would clip
+        // and re-anchor an absolutely/fixed-positioned child. Relocate each menu
+        // to <body> (which carries the theme class) and position it in JS.
+        document
+            .querySelectorAll(".lv-card-actions .lv-menu")
+            .forEach((menu) => document.body.appendChild(menu));
+
+        let open = null; // { trigger, menu }
+
+        function close() {
+            if (!open) return;
+            open.menu.hidden = true;
+            open.trigger.setAttribute("aria-expanded", "false");
+            open = null;
+        }
+
+        function place(trigger, menu) {
+            const r = trigger.getBoundingClientRect();
+            menu.hidden = false; // reveal so we can measure it
+            const mw = menu.offsetWidth;
+            const mh = menu.offsetHeight;
+            const pad = 8;
+            let left = r.right - mw; // right-align to the trigger
+            left = Math.max(pad, Math.min(left, window.innerWidth - mw - pad));
+            let top = r.bottom + 6; // prefer below the trigger
+            if (top + mh > window.innerHeight - pad) top = r.top - mh - 6; // flip above
+            top = Math.max(pad, top);
+            menu.style.left = left + "px";
+            menu.style.top = top + "px";
+        }
+
+        document.querySelectorAll(".lv-menu-trigger").forEach((trigger) => {
+            const menu = document.getElementById(
+                trigger.getAttribute("aria-controls")
+            );
+            if (!menu) return;
+            trigger.addEventListener("click", (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                if (open && open.menu === menu) {
+                    close();
+                    return;
+                }
+                close();
+                place(trigger, menu);
+                trigger.setAttribute("aria-expanded", "true");
+                open = { trigger, menu };
+            });
+            // Choosing any item dismisses the menu (forms still submit; their
+            // confirm handler runs independently on the submit event).
+            menu.querySelectorAll(".lv-menu-item").forEach((item) =>
+                item.addEventListener("click", () => close())
+            );
+        });
+
+        document.addEventListener("click", (ev) => {
+            if (open && !ev.target.closest(".lv-menu") && !ev.target.closest(".lv-menu-trigger"))
+                close();
+        });
+        document.addEventListener("keydown", (ev) => {
+            if (ev.key === "Escape") close();
+        });
+        window.addEventListener("scroll", close, true);
+        window.addEventListener("resize", close);
+    })();
+
     /* ---------------- drag & drop upload ---------------- */
     const dropzone = document.getElementById("lv-dropzone");
     if (dropzone) {
