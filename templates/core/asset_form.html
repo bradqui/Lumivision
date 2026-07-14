@@ -30,7 +30,12 @@
             <div class="lv-field">
                 <label for="{{ form.categories.id_for_label }}">Categories</label>
                 {{ form.categories }}
-                <p class="lv-help">Comma-separated — used to filter within a board.</p>
+                {% if suggest_categories %}
+                <div class="lv-cat-suggest" data-suggest-for="categories">
+                    {% for c in suggest_categories %}<button type="button" class="lv-chip" data-cat-name="{{ c.name }}">{{ c.name }}</button>{% endfor %}
+                </div>
+                {% endif %}
+                <p class="lv-help">Comma-separated — used to filter within a board. Tap a pill to reuse a category from this asset's boards.</p>
                 {% if form.categories.errors %}<div class="lv-errors">{{ form.categories.errors.0 }}</div>{% endif %}
             </div>
             <div class="lv-field">
@@ -39,7 +44,7 @@
                 <p class="lv-help">Tap to toggle — an asset can live on several boards at once.</p>
                 {% if form.boards.errors %}<div class="lv-errors">{{ form.boards.errors.0 }}</div>{% endif %}
             </div>
-            {% if asset.kind == 'video' or asset.kind == 'image' %}
+            {% if asset.kind == 'video' or asset.kind == 'link' %}
             <div class="lv-field">
                 <label for="{{ form.custom_thumb.id_for_label }}">Replace preview image <span style="text-transform:none;">(optional)</span></label>
                 {{ form.custom_thumb }}

@@ -43,6 +43,7 @@
     {% for cat in categories %}
         <button class="lv-chip" data-cat="{{ cat.slug }}">{{ cat.name }}</button>
     {% endfor %}
+    <button class="lv-chip lv-chips-clear" type="button" hidden>✕ Clear filters</button>
 </div>
 {% endif %}
 
@@ -195,7 +196,12 @@
             <div class="lv-field">
                 <label>Categories</label>
                 <input type="text" name="categories" class="lv-input" placeholder="Travel, Home, Fitness…">
-                <p class="lv-help">Comma-separated — used to filter within a board.</p>
+                {% if categories %}
+                <div class="lv-cat-suggest" data-suggest-for="categories">
+                    {% for c in categories %}<button type="button" class="lv-chip" data-cat-name="{{ c.name }}">{{ c.name }}</button>{% endfor %}
+                </div>
+                {% endif %}
+                <p class="lv-help">Comma-separated — used to filter within a board. Tap a pill to reuse one already on this board.</p>
             </div>
             <div class="lv-field">
                 <label>Boards</label>

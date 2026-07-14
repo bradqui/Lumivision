@@ -24,7 +24,7 @@ from .forms import (
     InviteForm,
     RegisterForm,
 )
-from .models import Asset, Board, BoardAsset, Category, Invite, User
+from .models import Asset, Board, BoardAsset, Category, Invite, SiteSettings, User
 from .themes import THEMES, THEME_KEYS
 from .utils import (
     extract_video_poster,
@@ -164,8 +164,12 @@ def user_set_password(request, pk):
 # ---------------------------------------------------------------------- boards
 
 
-@login_required
 def dashboard(request):
+    # Guests may browse the board list only when the admin has switched the
+    # site public; they then see public boards alone (via Board.visible_to)
+    # and no create/edit affordances.
+    if not request.user.is_authenticated and not SiteSettings.load().public_site:
+        return redirect(f"/accounts/login/?next={request.path}")
     boards = (
         Board.visible_to(request.user)
         .select_related("owner")
@@ -292,7 +296,8 @@ def _lightbox_payload(asset):
     if asset.kind == Asset.Kind.EMBED:
         src = asset.embed_src
     elif asset.kind == Asset.Kind.LINK:
-        src = asset.link_image_url
+        # A user-replaced preview beats the fetched Open Graph image.
+        src = asset.thumb.url if asset.thumb else asset.link_image_url
     else:
         src = asset.file.url if asset.file else ""
     return {
@@ -450,8 +455,11 @@ def asset_edit(request, pk):
         if form.is_valid():
             asset.title = form.cleaned_data["title"]
             asset.description = form.cleaned_data["description"]
+            # Images keep their auto-generated thumbnail; only videos and
+            # links (whose previews come from posters / OG images) can have
+            # theirs replaced.
             custom = form.cleaned_data.get("custom_thumb")
-            if custom:
+            if custom and asset.kind in (Asset.Kind.VIDEO, Asset.Kind.LINK):
                 thumb = make_thumbnail(custom, name_hint="t")
                 if thumb:
                     if asset.thumb:
@@ -490,7 +498,18 @@ def asset_edit(request, pk):
                 "boards": list(asset.boards.values_list("pk", flat=True)),
             },
         )
-    return render(request, "core/asset_form.html", {"form": form, "asset": asset})
+    # Categories already in use on this asset's boards, offered as one-tap
+    # suggestions next to the free-text input.
+    suggest_categories = (
+        Category.objects.filter(assets__boards__in=asset.boards.all())
+        .distinct()
+        .order_by("name")
+    )
+    return render(
+        request,
+        "core/asset_form.html",
+        {"form": form, "asset": asset, "suggest_categories": suggest_categories},
+    )
 
 
 @require_POST
@@ -555,6 +574,17 @@ def og_preview(request):
 
 
 # ---------------------------------------------------------------------- manage
+
+
+@admin_required
+def manage_settings(request):
+    site = SiteSettings.load()
+    if request.method == "POST":
+        site.public_site = request.POST.get("public_site") == "1"
+        site.save(update_fields=["public_site"])
+        messages.success(request, "Site settings saved.")
+        return redirect("manage_settings")
+    return render(request, "core/manage_settings.html", {"site": site})
 
 
 @admin_required

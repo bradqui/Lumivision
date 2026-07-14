@@ -36,6 +36,7 @@ urlpatterns = [
     path("a/<int:pk>/delete/", views.asset_delete, name="asset_delete"),
     path("api/og-preview/", views.og_preview, name="og_preview"),
     # Management
+    path("manage/settings/", views.manage_settings, name="manage_settings"),
     path("manage/invites/", views.manage_invites, name="manage_invites"),
     path("manage/invites/<int:pk>/revoke/", views.invite_revoke, name="invite_revoke"),
     path("manage/users/", views.manage_users, name="manage_users"),

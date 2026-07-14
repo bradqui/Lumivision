@@ -135,20 +135,79 @@
         window.addEventListener("load", layoutMasonry);
     }
 
-    /* ---------------- category filter ---------------- */
+    /* ---------------- category filter (multi-select) ---------------- */
     const chips = document.querySelectorAll(".lv-chip[data-cat]");
-    chips.forEach((chip) => {
-        chip.addEventListener("click", () => {
-            chips.forEach((c) => c.classList.remove("active"));
-            chip.classList.add("active");
-            const cat = chip.dataset.cat;
+    if (chips.length) {
+        const allChip = document.querySelector('.lv-chip[data-cat="*"]');
+        const clearBtn = document.querySelector(".lv-chips-clear");
+
+        function applyFilter() {
+            const active = Array.from(chips)
+                .filter((c) => c.dataset.cat !== "*" && c.classList.contains("active"))
+                .map((c) => c.dataset.cat);
+            if (allChip) allChip.classList.toggle("active", active.length === 0);
+            if (clearBtn) clearBtn.hidden = active.length === 0;
             document.querySelectorAll(".lv-card[data-cats]").forEach((card) => {
                 const cats = card.dataset.cats.split("|").filter(Boolean);
-                const show = cat === "*" || cats.indexOf(cat) !== -1;
+                // Show cards matching ANY selected category; none selected = all.
+                const show =
+                    active.length === 0 ||
+                    active.some((a) => cats.indexOf(a) !== -1);
                 card.classList.toggle("filtered-out", !show);
             });
             layoutMasonry();
+        }
+        function clearFilter() {
+            chips.forEach((c) => {
+                if (c.dataset.cat !== "*") c.classList.remove("active");
+            });
+            applyFilter();
+        }
+
+        chips.forEach((chip) => {
+            chip.addEventListener("click", () => {
+                if (chip.dataset.cat === "*") return clearFilter();
+                chip.classList.toggle("active");
+                applyFilter();
+            });
         });
+        if (clearBtn) clearBtn.addEventListener("click", clearFilter);
+    }
+
+    /* ---------------- category suggestion pills ---------------- */
+    // One-tap reuse of categories already on the board: toggles the name
+    // in and out of the comma-separated text input it belongs to.
+    document.querySelectorAll(".lv-cat-suggest").forEach((box) => {
+        const scope = box.closest("form") || document;
+        const input = scope.querySelector(
+            '[name="' + box.dataset.suggestFor + '"]'
+        );
+        if (!input) return;
+        const parse = () =>
+            input.value.split(",").map((s) => s.trim()).filter(Boolean);
+        const sync = () => {
+            const have = parse().map((s) => s.toLowerCase());
+            box.querySelectorAll("[data-cat-name]").forEach((b) =>
+                b.classList.toggle(
+                    "active",
+                    have.indexOf(b.dataset.catName.toLowerCase()) !== -1
+                )
+            );
+        };
+        box.querySelectorAll("[data-cat-name]").forEach((btn) =>
+            btn.addEventListener("click", () => {
+                const names = parse();
+                const idx = names.findIndex(
+                    (n) => n.toLowerCase() === btn.dataset.catName.toLowerCase()
+                );
+                if (idx === -1) names.push(btn.dataset.catName);
+                else names.splice(idx, 1);
+                input.value = names.join(", ");
+                sync();
+            })
+        );
+        input.addEventListener("input", sync);
+        sync();
     });
 
     /* ---------------- generic overlays ---------------- */

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Site settings — Lumivision{% endblock %}
+{% block content %}
+<div class="lv-page-head">
+    <div>
+        <h1>Site Settings</h1>
+        <p class="sub">Site-wide switches — these affect every visitor.</p>
+    </div>
+</div>
+
+<div class="lv-panel reveal">
+    <form method="post">
+        {% csrf_token %}
+        <label class="lv-switch-row">
+            <input type="checkbox" name="public_site" value="1" class="lv-switch" {% if site.public_site %}checked{% endif %}>
+            <span class="track" aria-hidden="true"><span class="knob"></span></span>
+            <span>
+                <strong>Public site</strong>
+                <span class="lv-help" style="display:block; margin-top:0.25rem;">
+                    Let anyone browse the home page without signing in. Guests see only
+                    <em>Public</em> boards — Private and Registered-only boards stay hidden,
+                    and nothing can be created or edited without an account.
+                </span>
+            </span>
+        </label>
+        <div style="margin-top:1.4rem;">
+            <button type="submit" class="btn btn-primary btn-sm">Save settings</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

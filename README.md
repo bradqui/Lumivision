@@ -8,6 +8,8 @@ built-in theme system. Runs as a single Docker container with all state in one v
 
 - **Boards** with three visibility levels — Private, Registered Users, or fully **Public**
   (view-only, shareable with anyone)
+- Optional **public site mode** (admin toggle under *Settings*): guests can browse the
+  home page and see the list of Public boards without signing in
 - **Collaborators**: board owners choose which members may add content; collaborators can
   also see private boards they're invited to
 - **Assets**: image uploads, video uploads with automatic poster-frame thumbnails (ffmpeg),

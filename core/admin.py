@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Asset, Board, BoardAsset, Category, Invite, User
+from .models import Asset, Board, BoardAsset, Category, Invite, SiteSettings, User
 
 
 @admin.register(User)
@@ -44,6 +44,14 @@ class BoardAdmin(admin.ModelAdmin):
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "slug")
+
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "public_site")
+
+    def has_add_permission(self, request):
+        return not SiteSettings.objects.exists()  # singleton
 
 
 @admin.register(Asset)

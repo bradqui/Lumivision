@@ -42,6 +42,30 @@ class User(AbstractUser):
         return self.username
 
 
+class SiteSettings(models.Model):
+    """Singleton row of site-wide switches, editable by admins in the app."""
+
+    public_site = models.BooleanField(
+        default=False,
+        help_text=(
+            "Let anyone browse the home page without signing in. Only Public "
+            "boards are listed and everything stays view-only for guests."
+        ),
+    )
+
+    class Meta:
+        verbose_name = "site settings"
+        verbose_name_plural = "site settings"
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return "Site settings"
+
+
 class Invite(models.Model):
     """A shareable registration link. Send /join/<token>/ to someone."""
 
