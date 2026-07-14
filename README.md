@@ -4,6 +4,28 @@ A self-hosted, invite-only **vision board** for sharing images, videos and links
 circle — wrapped in a polished dark UI with glassmorphism, animated transitions, and a
 built-in theme system. Runs as a single Docker container with all state in one volume.
 
+**[Live demo →](https://lumivision.bquillen.com)**
+
+![A Lumivision board — masonry layout, category filters, and glassmorphism cards](docs/screenshots/board.webp)
+
+<details>
+<summary><strong>More screenshots</strong> — dashboard, lightbox, themes</summary>
+<br>
+
+*The dashboard, where every board renders its own theme:*
+
+![Dashboard with themed board cards](docs/screenshots/dashboard.webp)
+
+*The lightbox viewer, with keyboard navigation:*
+
+![Lightbox viewer](docs/screenshots/lightbox.webp)
+
+*7 built-in themes — 4 dark, 3 light — per user, and per board:*
+
+![Light and dark themes](docs/screenshots/themes.webp)
+
+</details>
+
 ## Features
 
 - **Boards** with three visibility levels — Private, Registered Users, or fully **Public**
