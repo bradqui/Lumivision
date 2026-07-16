@@ -126,6 +126,13 @@ class Board(models.Model):
         blank=True,
         help_text="Displayed in place of the board name, like a logo",
     )
+    show_asset_preview = models.BooleanField(
+        default=False,
+        help_text=(
+            "Use a blurred collage of the board's first assets as this "
+            "board's card background in the board list (banner image wins)"
+        ),
+    )
     visibility = models.CharField(
         max_length=12, choices=Visibility.choices, default=Visibility.REGISTERED
     )
