@@ -636,8 +636,8 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
     /* the scale hides the blur's fringed edges under the card border */
-    transform: scale(1.12);
-    filter: blur(14px) saturate(0.75) brightness(0.72);
+    transform: scale(1.08);
+    filter: blur(6px) saturate(0.9) brightness(0.85);
     transition: transform 0.6s var(--ease);
 }
 .lv-board-card:hover .lv-board-collage { transform: scale(1.18); }
@@ -656,10 +656,12 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
     position: absolute;
     inset: 0;
     z-index: 1;
+    /* clear at the top, near-solid behind the title */
     background: linear-gradient(to top,
-        rgba(var(--bg-rgb),0.9) 0%,
-        rgba(var(--bg-rgb),0.68) 45%,
-        rgba(var(--bg-rgb),0.58) 100%);
+        rgba(var(--bg-rgb),0.96) 0%,
+        rgba(var(--bg-rgb),0.72) 32%,
+        rgba(var(--bg-rgb),0.3) 62%,
+        rgba(var(--bg-rgb),0.08) 100%);
 }
 .lv-board-noimg {
     position: absolute;
