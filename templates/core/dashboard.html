@@ -30,12 +30,12 @@
                 <img class="lv-board-logo" src="{{ board.logo_image.url }}" alt="{{ board.name }}">
             </div>
         {% endif %}
+        <span class="lv-vis-badge lv-vis-{{ board.visibility }}">{{ board.get_visibility_display }}</span>
         <div class="lv-board-meta">
             <div>
                 {% if not board.logo_image %}{% if board.banner_image or board.preview_urls %}<div class="name">{{ board.name }}</div>{% endif %}{% endif %}
                 <div class="count">{{ board.asset_count }} asset{{ board.asset_count|pluralize }} · <span class="lv-owner">{% include "core/_avatar.html" with person=board.owner size="sm" %} {{ board.owner.username }}</span></div>
             </div>
-            <span class="lv-vis-badge lv-vis-{{ board.visibility }}">{{ board.get_visibility_display }}</span>
         </div>
     </a>
     {% endfor %}
