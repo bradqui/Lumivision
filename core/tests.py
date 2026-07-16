@@ -592,6 +592,17 @@ class BoardCollageTests(MediaTestCase):
         asset = Asset.objects.latest("pk")
         self.assertIn(asset.thumb.url.encode(), r.content)
 
+    def test_collage_uses_up_to_four_previews(self):
+        for _ in range(4):  # 5 image assets total incl. setUp's
+            self.c.post(
+                "/assets/new/",
+                {"kind": "image", "boards": [self.board.pk], "file": image_file(),
+                 "title": "", "description": "", "categories": ""},
+            )
+        r = self.c.get("/")
+        collage = r.content.split(b"lv-board-collage")[1].split(b"</div>")[0]
+        self.assertEqual(collage.count(b"<img"), 4)
+
     def test_collage_absent_when_disabled(self):
         self.board.show_asset_preview = False
         self.board.save(update_fields=["show_asset_preview"])

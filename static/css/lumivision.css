@@ -860,7 +860,7 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
 }
 .lv-cat-suggest .lv-chip { padding: 0.24rem 0.75rem; font-size: 0.7rem; }
 
-/* toggle switch (site settings) */
+/* toggle switch (site settings, board form) */
 .lv-switch-row {
     display: flex;
     align-items: flex-start;
@@ -868,8 +868,18 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
     cursor: pointer;
     max-width: 640px;
 }
+/* inside a form field, out-specify the .lv-field label styling */
+.lv-field label.lv-switch-row {
+    display: flex;
+    font-size: 0.85rem;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--text);
+}
 .lv-switch { display: none; }
 .lv-switch-row .track {
+    display: inline-block;
     flex-shrink: 0;
     width: 44px;
     height: 24px;
