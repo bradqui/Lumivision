@@ -60,6 +60,7 @@ class BoardForm(GlassFormMixin, forms.ModelForm):
             "description",
             "banner_image",
             "logo_image",
+            "show_asset_preview",
             "visibility",
             "theme",
             "collaborators",
@@ -69,6 +70,7 @@ class BoardForm(GlassFormMixin, forms.ModelForm):
             "collaborators": forms.CheckboxSelectMultiple,
             "banner_image": LvClearableFileInput,
             "logo_image": LvClearableFileInput,
+            "show_asset_preview": forms.CheckboxInput(attrs={"class": "lv-switch"}),
         }
 
     def __init__(self, *args, owner=None, **kwargs):

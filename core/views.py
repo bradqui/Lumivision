@@ -170,11 +170,28 @@ def dashboard(request):
     # and no create/edit affordances.
     if not request.user.is_authenticated and not SiteSettings.load().public_site:
         return redirect(f"/accounts/login/?next={request.path}")
-    boards = (
+    boards = list(
         Board.visible_to(request.user)
         .select_related("owner")
         .annotate(asset_count=Count("boardasset", distinct=True))
     )
+    # Boards that opted in get up to four asset previews for their card
+    # collage (skipped when a banner image would cover it anyway).
+    wanting = [b.pk for b in boards if b.show_asset_preview and not b.banner_image]
+    previews = {}
+    if wanting:
+        for entry in (
+            BoardAsset.objects.filter(board_id__in=wanting)
+            .select_related("asset")
+            .order_by("board_id", "sort_order", "-added_at")
+        ):
+            urls = previews.setdefault(entry.board_id, [])
+            if len(urls) < 4:
+                url = entry.asset.preview_url
+                if url:
+                    urls.append(url)
+    for b in boards:
+        b.preview_urls = previews.get(b.pk, [])
     return render(request, "core/dashboard.html", {"boards": boards})
 
 

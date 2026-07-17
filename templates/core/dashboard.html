@@ -17,6 +17,11 @@
     <a class="lv-board-card reveal{% if board.theme %} theme-{{ board.theme }}{% endif %}" href="{{ board.get_absolute_url }}">
         {% if board.banner_image %}
             <div class="lv-board-cover" style="background-image: url('{{ board.banner_image.url }}');"></div>
+        {% elif board.preview_urls %}
+            <div class="lv-board-collage" aria-hidden="true">
+                {% for u in board.preview_urls %}<img src="{{ u }}" alt="" loading="lazy">{% endfor %}
+            </div>
+            <div class="lv-board-scrim" aria-hidden="true"></div>
         {% else %}
             <div class="lv-board-noimg">{% if not board.logo_image %}<h3>{{ board.name }}</h3>{% endif %}</div>
         {% endif %}
@@ -25,12 +30,12 @@
                 <img class="lv-board-logo" src="{{ board.logo_image.url }}" alt="{{ board.name }}">
             </div>
         {% endif %}
+        <span class="lv-vis-badge lv-vis-{{ board.visibility }}">{{ board.get_visibility_display }}</span>
         <div class="lv-board-meta">
             <div>
-                {% if board.banner_image and not board.logo_image %}<div class="name">{{ board.name }}</div>{% endif %}
+                {% if not board.logo_image %}{% if board.banner_image or board.preview_urls %}<div class="name">{{ board.name }}</div>{% endif %}{% endif %}
                 <div class="count">{{ board.asset_count }} asset{{ board.asset_count|pluralize }} · <span class="lv-owner">{% include "core/_avatar.html" with person=board.owner size="sm" %} {{ board.owner.username }}</span></div>
             </div>
-            <span class="lv-vis-badge lv-vis-{{ board.visibility }}">{{ board.get_visibility_display }}</span>
         </div>
     </a>
     {% endfor %}

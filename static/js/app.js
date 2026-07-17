@@ -545,13 +545,8 @@
             if (!dragDepth) dropzone.classList.remove("active");
         });
         window.addEventListener("dragover", (ev) => ev.preventDefault());
-        window.addEventListener("drop", async (ev) => {
-            ev.preventDefault();
-            dragDepth = 0;
-            dropzone.classList.remove("active");
-            if (internalDrag) { internalDrag = false; return; }
-            const files = Array.from(ev.dataTransfer.files || []);
-            if (!files.length) return;
+
+        async function uploadFiles(files) {
             const fd = new FormData();
             files.forEach((f) => fd.append("files", f));
             progress.textContent = "Uploading " + files.length + " file" + (files.length > 1 ? "s" : "") + "…";
@@ -572,6 +567,66 @@
                 progress.classList.remove("active");
                 toast("Upload failed — check your connection.", "error");
             }
+        }
+
+        window.addEventListener("drop", (ev) => {
+            ev.preventDefault();
+            dragDepth = 0;
+            dropzone.classList.remove("active");
+            if (internalDrag) { internalDrag = false; return; }
+            const files = Array.from(ev.dataTransfer.files || []);
+            if (files.length) uploadFiles(files);
+        });
+
+        /* paste button (add-asset modal): the mobile route, where a paste
+           gesture only exists inside text fields. Reads the clipboard via
+           the async API behind the tap (a user gesture, as iOS requires). */
+        const pasteBtn = document.getElementById("lv-paste-btn");
+        if (pasteBtn && navigator.clipboard && navigator.clipboard.read) {
+            pasteBtn.closest(".lv-field").hidden = false;
+            pasteBtn.addEventListener("click", async () => {
+                let items;
+                try {
+                    items = await navigator.clipboard.read();
+                } catch (e) {
+                    toast("Clipboard access was blocked — allow paste and try again.", "error");
+                    return;
+                }
+                const files = [];
+                for (const item of items) {
+                    const type = item.types.find((t) => t.indexOf("image/") === 0);
+                    if (!type) continue;
+                    const blob = await item.getType(type);
+                    const ext = type === "image/jpeg" ? "jpg" : type.split("/")[1];
+                    files.push(new File([blob], "Pasted image." + ext, { type: type }));
+                }
+                if (!files.length) {
+                    toast("No image on the clipboard.", "error");
+                    return;
+                }
+                closeOverlay(document.getElementById("lv-asset-modal"));
+                uploadFiles(files);
+            });
+        }
+
+        /* paste-to-post: an image on the clipboard becomes an asset */
+        window.addEventListener("paste", (ev) => {
+            // Never hijack pastes aimed at a form field or an open modal.
+            const t = ev.target;
+            if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
+            if (document.querySelector(".lv-overlay.open")) return;
+            const files = Array.from(
+                (ev.clipboardData && ev.clipboardData.files) || []
+            ).filter((f) => f.type.indexOf("image/") === 0);
+            if (!files.length) return;
+            ev.preventDefault();
+            uploadFiles(files.map((f) => {
+                // Clipboard bitmaps arrive as a generic "image.png"; give them
+                // a name that makes a readable asset title.
+                if (!/^image\.\w+$/i.test(f.name)) return f;
+                const ext = f.type === "image/jpeg" ? "jpg" : f.type.split("/")[1];
+                return new File([f], "Pasted image." + ext, { type: f.type });
+            }));
         });
     }
 

@@ -573,6 +573,68 @@ class CategorySuggestTests(MediaTestCase):
         self.assertIn(b'data-cat-name="Fitness"', r.content)
 
 
+class BoardCollageTests(MediaTestCase):
+    def setUp(self):
+        self.member = make_user("member")
+        self.c = login("member")
+        self.board = Board.objects.create(
+            name="Mine", owner=self.member, show_asset_preview=True
+        )
+        self.c.post(
+            "/assets/new/",
+            {"kind": "image", "boards": [self.board.pk], "file": image_file(),
+             "title": "", "description": "", "categories": ""},
+        )
+
+    def test_collage_rendered_when_enabled(self):
+        r = self.c.get("/")
+        self.assertIn(b"lv-board-collage", r.content)
+        asset = Asset.objects.latest("pk")
+        self.assertIn(asset.thumb.url.encode(), r.content)
+
+    def test_collage_uses_up_to_four_previews(self):
+        for _ in range(4):  # 5 image assets total incl. setUp's
+            self.c.post(
+                "/assets/new/",
+                {"kind": "image", "boards": [self.board.pk], "file": image_file(),
+                 "title": "", "description": "", "categories": ""},
+            )
+        r = self.c.get("/")
+        collage = r.content.split(b"lv-board-collage")[1].split(b"</div>")[0]
+        self.assertEqual(collage.count(b"<img"), 4)
+
+    def test_collage_absent_when_disabled(self):
+        self.board.show_asset_preview = False
+        self.board.save(update_fields=["show_asset_preview"])
+        r = self.c.get("/")
+        self.assertNotIn(b"lv-board-collage", r.content)
+
+    def test_banner_beats_collage(self):
+        self.board.banner_image.save(
+            "banner.png", ContentFile(image_file().read()), save=True
+        )
+        r = self.c.get("/")
+        self.assertIn(b"lv-board-cover", r.content)
+        self.assertNotIn(b"lv-board-collage", r.content)
+
+    def test_board_form_saves_toggle(self):
+        r = self.c.post(
+            f"/b/{self.board.slug}/edit/",
+            {"name": "Mine", "description": "", "visibility": "registered",
+             "theme": ""},
+        )
+        self.assertEqual(r.status_code, 302)
+        self.board.refresh_from_db()
+        self.assertFalse(self.board.show_asset_preview)  # unchecked box = off
+        self.c.post(
+            f"/b/{self.board.slug}/edit/",
+            {"name": "Mine", "description": "", "visibility": "registered",
+             "theme": "", "show_asset_preview": "on"},
+        )
+        self.board.refresh_from_db()
+        self.assertTrue(self.board.show_asset_preview)
+
+
 class PublicSiteTests(MediaTestCase):
     def setUp(self):
         self.admin = make_user("admin", User.Role.ADMIN)

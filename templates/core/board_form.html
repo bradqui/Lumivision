@@ -31,6 +31,19 @@
                 {% if form.logo_image.errors %}<div class="lv-errors">{{ form.logo_image.errors.0 }}</div>{% endif %}
             </div>
             <div class="lv-field">
+                <label class="lv-switch-row">
+                    {{ form.show_asset_preview }}
+                    <span class="track" aria-hidden="true"><span class="knob"></span></span>
+                    <span>
+                        <strong>Asset preview background</strong>
+                        <span class="lv-help" style="display:block; margin-top:0.25rem;">
+                            Show a subtle blurred collage of this board's content behind its
+                            name in the board list. A banner image takes precedence.
+                        </span>
+                    </span>
+                </label>
+            </div>
+            <div class="lv-field">
                 <label for="{{ form.visibility.id_for_label }}">Visibility</label>
                 {{ form.visibility }}
                 <p class="lv-help">Private — only you · Registered Users — anyone signed in · Public — visible to the world (view-only)</p>

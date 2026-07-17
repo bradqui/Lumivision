@@ -120,7 +120,7 @@
 <div class="lv-empty reveal">
     <div class="glyph">✦</div>
     <p>This board is waiting for its first spark of inspiration.</p>
-    {% if can_post %}<p class="lv-help" style="margin-top:0.6rem;">Drop images anywhere on this page, or press the + button.</p>{% endif %}
+    {% if can_post %}<p class="lv-help" style="margin-top:0.6rem;">Drop or paste images anywhere on this page, or press the + button.</p>{% endif %}
 </div>
 {% endif %}
 
@@ -156,6 +156,10 @@
                     <label>Image or video file</label>
                     <input type="file" name="file" class="lv-input" accept="image/*,video/mp4,video/webm,video/quicktime,.m4v,.ogv">
                     <p class="lv-help">Images: jpg · png · gif · webp · avif — Videos: mp4 · webm · mov</p>
+                </div>
+                {# unhidden by JS when the browser supports clipboard reads #}
+                <div class="lv-field" hidden>
+                    <button type="button" class="btn btn-ghost btn-sm" id="lv-paste-btn">📋 Paste image from clipboard</button>
                 </div>
                 <div class="lv-field">
                     <label>Preview image <span style="text-transform:none;">(optional — used for video uploads)</span></label>
