@@ -1259,6 +1259,21 @@ input[type="file"]::file-selector-button:hover { background: rgba(var(--a1),0.35
 }
 .lv-lightbox-caption .t { font-weight: 600; color: var(--strong); font-size: 1rem; }
 .lv-lightbox-caption .d { font-size: 0.85rem; }
+.lv-lightbox-caption .lb-owner {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+}
+.lv-lightbox-caption .lb-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+/* board pill + remove button on the asset page's "Appears on" row */
+.lv-board-tag { display: inline-flex; align-items: center; gap: 0.15rem; }
 .lv-lightbox-nav {
     position: absolute;
     top: 50%;

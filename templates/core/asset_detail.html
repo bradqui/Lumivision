@@ -66,7 +66,16 @@
     <p style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-faint); margin-bottom:0.8rem;">Appears on</p>
     <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
         {% for b in boards %}
-            <a class="btn btn-ghost btn-sm" href="{{ b.get_absolute_url }}">{{ b.name }}</a>
+            <span class="lv-board-tag">
+                <a class="btn btn-ghost btn-sm" href="{{ b.get_absolute_url }}">{{ b.name }}</a>
+                {% if b.user_can_remove %}
+                <form method="post" action="{% url 'board_asset_remove' b.slug asset.pk %}" class="lv-inline-form" data-confirm="Remove this asset from “{{ b.name }}”? (The asset itself is kept.)">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ asset.get_absolute_url }}">
+                    <button type="submit" class="lv-iconbtn" title="Remove from {{ b.name }}">⤫</button>
+                </form>
+                {% endif %}
+            </span>
         {% endfor %}
     </div>
 </div>
