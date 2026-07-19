@@ -12,6 +12,7 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -280,7 +281,7 @@ def board_detail(request, slug):
         asset.user_can_remove = (
             asset.user_can_delete or board.can_edit(user)
         )
-        asset.lb_json = json.dumps(_lightbox_payload(asset))
+        asset.lb_json = json.dumps(_lightbox_payload(asset, board))
         assets.append(asset)
 
     categories = sorted(
@@ -308,8 +309,12 @@ def board_detail(request, slug):
     )
 
 
-def _lightbox_payload(asset):
-    """Data the lightbox needs to render this asset client-side."""
+def _lightbox_payload(asset, board=None):
+    """Data the lightbox needs to render this asset client-side.
+
+    Expects asset.user_can_delete / user_can_remove to be set by the
+    caller (board_detail does) so the lightbox can offer manage actions.
+    """
     if asset.kind == Asset.Kind.EMBED:
         src = asset.embed_src
     elif asset.kind == Asset.Kind.LINK:
@@ -317,13 +322,27 @@ def _lightbox_payload(asset):
         src = asset.thumb.url if asset.thumb else asset.link_image_url
     else:
         src = asset.file.url if asset.file else ""
+    owner = asset.owner
     return {
         "kind": asset.kind,
+        "id": asset.pk,
         "title": asset.display_title,
         "desc": asset.description or asset.link_description,
         "src": src,
         "href": asset.link_url,
         "permalink": asset.get_absolute_url(),
+        "owner": owner.username,
+        "avatar": owner.avatar.url if owner.avatar else "",
+        "can_delete": bool(getattr(asset, "user_can_delete", False)),
+        "can_remove": bool(getattr(asset, "user_can_remove", False)),
+        "edit_url": reverse("asset_edit", args=[asset.pk]),
+        "delete_url": reverse("asset_delete", args=[asset.pk]),
+        "remove_url": (
+            reverse("board_asset_remove", args=[board.slug, asset.pk])
+            if board
+            else ""
+        ),
+        "board": board.name if board else "",
     }
 
 
@@ -450,14 +469,17 @@ def asset_detail(request, pk):
         if not request.user.is_authenticated:
             return redirect(f"/accounts/login/?next={request.path}")
         return HttpResponseForbidden("You don't have access to this asset.")
-    boards = Board.visible_to(request.user).filter(boardasset__asset=asset)
+    boards = list(Board.visible_to(request.user).filter(boardasset__asset=asset))
+    can_delete = asset.can_delete(request.user)
+    for b in boards:
+        b.user_can_remove = can_delete or b.can_edit(request.user)
     return render(
         request,
         "core/asset_detail.html",
         {
             "asset": asset,
             "boards": boards,
-            "user_can_delete": asset.can_delete(request.user),
+            "user_can_delete": can_delete,
         },
     )
 
@@ -554,6 +576,14 @@ def board_asset_remove(request, slug, pk):
     if request.headers.get("x-requested-with") == "fetch":
         return JsonResponse({"ok": True})
     messages.success(request, "Removed from board.")
+    next_url = request.POST.get("next", "")
+    # Don't bounce back to the asset page if this removal just cost the
+    # remover their view access to it (editor removing from the only
+    # shared board).
+    if next_url.startswith("/") and (
+        next_url != asset.get_absolute_url() or asset.can_view(request.user)
+    ):
+        return redirect(next_url)
     return redirect(board)
 
 

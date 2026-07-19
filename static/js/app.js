@@ -325,6 +325,76 @@
         });
     }
 
+    /* ---------------- image zoom (lightbox + asset page) ---------------- */
+    /* Amazon-style: click/tap zooms at that point; zoomed, the view follows
+       the mouse (or drags with a finger); click/tap again to unzoom. Fixed
+       scale + clamped transform-origin means it can never pan out of frame. */
+    function makeZoomable(img) {
+        const SCALE = 2.4;
+        const clamp = (v) => Math.max(0, Math.min(100, v));
+        const wrap = document.createElement("span");
+        wrap.className = "lv-zoom";
+        img.parentNode.insertBefore(wrap, img);
+        wrap.appendChild(img);
+        let zoomed = false;
+        let ox = 50, oy = 50;
+
+        function apply() {
+            img.style.transformOrigin = ox + "% " + oy + "%";
+            img.style.transform = zoomed ? "scale(" + SCALE + ")" : "";
+        }
+        function originFromPoint(cx, cy) {
+            const r = wrap.getBoundingClientRect();
+            ox = clamp(((cx - r.left) / r.width) * 100);
+            oy = clamp(((cy - r.top) / r.height) * 100);
+            apply();
+        }
+        function toggle(cx, cy) {
+            zoomed = !zoomed;
+            wrap.classList.toggle("zoomed", zoomed);
+            if (zoomed) originFromPoint(cx, cy);
+            else apply();
+        }
+
+        wrap.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            toggle(ev.clientX, ev.clientY);
+        });
+        wrap.addEventListener("mousemove", (ev) => {
+            if (zoomed) originFromPoint(ev.clientX, ev.clientY);
+        });
+
+        /* touch: tap toggles; while zoomed, dragging pans the image with
+           the finger (origin moves opposite the drag, scaled to the zoom) */
+        let start = null, last = null, moved = false;
+        wrap.addEventListener("touchstart", (ev) => {
+            if (ev.touches.length !== 1) return;
+            start = last = { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+            moved = false;
+        }, { passive: true });
+        wrap.addEventListener("touchmove", (ev) => {
+            if (!zoomed || !last || ev.touches.length !== 1) return;
+            const t = ev.touches[0];
+            if (Math.abs(t.clientX - start.x) + Math.abs(t.clientY - start.y) > 8) moved = true;
+            const r = wrap.getBoundingClientRect();
+            ox = clamp(ox - ((t.clientX - last.x) / (SCALE - 1)) / r.width * 100);
+            oy = clamp(oy - ((t.clientY - last.y) / (SCALE - 1)) / r.height * 100);
+            last = { x: t.clientX, y: t.clientY };
+            apply();
+            ev.preventDefault(); // the drag pans the image, not the page
+        }, { passive: false });
+        wrap.addEventListener("touchend", (ev) => {
+            if (!start) return;
+            if (!moved && ev.changedTouches.length === 1) {
+                toggle(ev.changedTouches[0].clientX, ev.changedTouches[0].clientY);
+                ev.preventDefault(); // swallow the synthetic click
+            }
+            start = last = null;
+            moved = false;
+        });
+    }
+    document.querySelectorAll("img[data-zoom]").forEach(makeZoomable);
+
     /* ---------------- lightbox ---------------- */
     const lightbox = document.getElementById("lv-lightbox");
     let lbItems = [];
@@ -345,6 +415,7 @@
             img.src = item.src;
             img.alt = item.title || "";
             media.appendChild(img);
+            makeZoomable(img);
         } else if (item.kind === "video") {
             const v = document.createElement("video");
             v.src = item.src;
@@ -375,16 +446,72 @@
         }
         let capHtml =
             '<div><div class="t">' + escapeHtml(item.title || "") + '</div>' +
-            (item.desc ? '<div class="d">' + escapeHtml(item.desc) + "</div>" : "") +
-            "</div>" +
-            '<div style="display:flex;gap:0.6rem;flex-wrap:wrap;">';
+            (item.desc ? '<div class="d">' + escapeHtml(item.desc) + "</div>" : "");
+        if (item.owner) {
+            capHtml +=
+                '<div class="lb-owner">' +
+                (item.avatar
+                    ? '<img class="lv-avatar sm" src="' + escapeHtml(item.avatar) + '" alt="">'
+                    : '<span class="lv-avatar sm">' + escapeHtml(item.owner.charAt(0).toUpperCase()) + "</span>") +
+                "posted by " + escapeHtml(item.owner) + "</div>";
+        }
+        capHtml += "</div>" + '<div class="lb-actions">';
         if (item.kind === "link" && item.href)
             capHtml += '<a class="btn btn-gold btn-sm" href="' + escapeHtml(item.href) + '" target="_blank" rel="noopener">Visit link ↗</a>';
-        capHtml += '<button class="btn btn-ghost btn-sm" data-share="' + escapeHtml(item.permalink) + '">Copy link</button></div>';
+        capHtml += '<button class="btn btn-ghost btn-sm" data-share="' + escapeHtml(item.permalink) + '">Copy link</button>';
+        if (item.can_delete && item.edit_url)
+            capHtml += '<a class="btn btn-gold btn-sm" href="' + escapeHtml(item.edit_url) +
+                "?next=" + encodeURIComponent(location.pathname) + '">Edit</a>';
+        if (item.can_remove && item.remove_url)
+            capHtml += '<button class="btn btn-ghost btn-sm" data-lb-remove>Remove from board</button>';
+        if (item.can_delete && item.delete_url)
+            capHtml += '<button class="btn btn-danger btn-sm" data-lb-delete>Delete</button>';
+        capHtml += "</div>";
         cap.innerHTML = capHtml;
         cap.querySelector("[data-share]").addEventListener("click", (ev) =>
             copyText(ev.target.dataset.share)
         );
+        const removeBtn = cap.querySelector("[data-lb-remove]");
+        if (removeBtn)
+            removeBtn.addEventListener("click", () =>
+                lightboxManage(item, item.remove_url,
+                    "Remove this asset from “" + item.board + "”? (The asset itself is kept.)",
+                    "Removed from board.")
+            );
+        const deleteBtn = cap.querySelector("[data-lb-delete]");
+        if (deleteBtn)
+            deleteBtn.addEventListener("click", () =>
+                lightboxManage(item, item.delete_url,
+                    "Delete this asset everywhere? Its file will be permanently removed from the server.",
+                    "Asset deleted.")
+            );
+    }
+
+    /* remove/delete from inside the lightbox, keeping the gallery in sync */
+    async function lightboxManage(item, url, confirmMsg, doneMsg) {
+        if (!window.confirm(confirmMsg)) return;
+        try {
+            const r = await fetch(url, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrftoken(), "x-requested-with": "fetch" },
+            });
+            if (!(await r.json()).ok) throw new Error();
+        } catch (e) {
+            toast("That didn't work — try again.", "error");
+            return;
+        }
+        const card = document.querySelector('.lv-card[data-asset-id="' + item.id + '"]');
+        if (card) card.remove();
+        toast(doneMsg, "success");
+        const cards = visibleCards();
+        if (!cards.length) {
+            closeOverlay(lightbox);
+        } else {
+            lbItems = cards.map((c) => JSON.parse(c.dataset.lb));
+            if (lbIndex >= lbItems.length) lbIndex = 0;
+            renderLightbox();
+        }
+        layoutMasonry();
     }
 
     function openLightboxFromCard(card) {

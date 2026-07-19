@@ -573,6 +573,70 @@ class CategorySuggestTests(MediaTestCase):
         self.assertIn(b'data-cat-name="Fitness"', r.content)
 
 
+class LightboxActionTests(MediaTestCase):
+    def setUp(self):
+        self.member = make_user("member")
+        self.viewer = make_user("viewer", User.Role.VIEWER)
+        self.c = login("member")
+        self.board = Board.objects.create(
+            name="Open", owner=self.member, visibility=Board.Visibility.PUBLIC
+        )
+        self.c.post(
+            "/assets/new/",
+            {"kind": "image", "boards": [self.board.pk], "file": image_file(),
+             "title": "Pic", "description": "", "categories": ""},
+        )
+        self.asset = Asset.objects.latest("pk")
+
+    def _payload(self, client):
+        r = client.get(f"/b/{self.board.slug}/")
+        html = r.content.decode()
+        blob = html.split('data-lb="')[1].split('"')[0]
+        import html as html_mod  # noqa: PLC0415
+
+        return json.loads(html_mod.unescape(blob))
+
+    def test_owner_payload_has_actions_and_owner(self):
+        p = self._payload(self.c)
+        self.assertEqual(p["owner"], "member")
+        self.assertTrue(p["can_delete"])
+        self.assertTrue(p["can_remove"])
+        self.assertIn(f"/b/{self.board.slug}/remove/{self.asset.pk}/", p["remove_url"])
+        self.assertEqual(p["id"], self.asset.pk)
+
+    def test_viewer_payload_denies_actions_but_shows_owner(self):
+        p = self._payload(login("viewer"))
+        self.assertEqual(p["owner"], "member")
+        self.assertFalse(p["can_delete"])
+        self.assertFalse(p["can_remove"])
+
+    def test_asset_page_remove_returns_to_asset(self):
+        board2 = Board.objects.create(name="Second", owner=self.member)
+        self.c.post(
+            f"/a/{self.asset.pk}/edit/",
+            {"title": "Pic", "description": "", "categories": "",
+             "boards": [self.board.pk, board2.pk]},
+        )
+        r = self.c.get(f"/a/{self.asset.pk}/")
+        self.assertContains(r, "Removed from board.", count=0)  # sanity: page loads
+        r = self.c.post(
+            f"/b/{board2.slug}/remove/{self.asset.pk}/",
+            {"next": f"/a/{self.asset.pk}/"},
+        )
+        self.assertRedirects(r, f"/a/{self.asset.pk}/")
+        self.assertEqual(self.asset.boards.count(), 1)
+
+    def test_remove_button_only_for_permitted(self):
+        r = self.c.get(f"/a/{self.asset.pk}/")
+        self.assertIn("⤫".encode(), r.content)
+        r = login("viewer").get(f"/a/{self.asset.pk}/")
+        self.assertNotIn("⤫".encode(), r.content)
+
+    def test_asset_page_image_is_zoomable(self):
+        r = self.c.get(f"/a/{self.asset.pk}/")
+        self.assertIn(b"data-zoom", r.content)
+
+
 class BoardCollageTests(MediaTestCase):
     def setUp(self):
         self.member = make_user("member")
