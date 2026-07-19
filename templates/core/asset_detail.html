@@ -30,7 +30,7 @@
 
 <div class="lv-panel reveal" style="text-align:center;">
     {% if asset.kind == 'image' and asset.file %}
-        <img src="{{ asset.file.url }}" alt="{{ asset.display_title }}"
+        <img src="{{ asset.file.url }}" alt="{{ asset.display_title }}" data-zoom
              style="max-width:100%; max-height:76vh; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,0.7);">
     {% elif asset.kind == 'video' and asset.file %}
         <video src="{{ asset.file.url }}" controls

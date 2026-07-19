@@ -632,6 +632,10 @@ class LightboxActionTests(MediaTestCase):
         r = login("viewer").get(f"/a/{self.asset.pk}/")
         self.assertNotIn("⤫".encode(), r.content)
 
+    def test_asset_page_image_is_zoomable(self):
+        r = self.c.get(f"/a/{self.asset.pk}/")
+        self.assertIn(b"data-zoom", r.content)
+
 
 class BoardCollageTests(MediaTestCase):
     def setUp(self):

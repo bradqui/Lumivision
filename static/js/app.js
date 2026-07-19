@@ -325,6 +325,76 @@
         });
     }
 
+    /* ---------------- image zoom (lightbox + asset page) ---------------- */
+    /* Amazon-style: click/tap zooms at that point; zoomed, the view follows
+       the mouse (or drags with a finger); click/tap again to unzoom. Fixed
+       scale + clamped transform-origin means it can never pan out of frame. */
+    function makeZoomable(img) {
+        const SCALE = 2.4;
+        const clamp = (v) => Math.max(0, Math.min(100, v));
+        const wrap = document.createElement("span");
+        wrap.className = "lv-zoom";
+        img.parentNode.insertBefore(wrap, img);
+        wrap.appendChild(img);
+        let zoomed = false;
+        let ox = 50, oy = 50;
+
+        function apply() {
+            img.style.transformOrigin = ox + "% " + oy + "%";
+            img.style.transform = zoomed ? "scale(" + SCALE + ")" : "";
+        }
+        function originFromPoint(cx, cy) {
+            const r = wrap.getBoundingClientRect();
+            ox = clamp(((cx - r.left) / r.width) * 100);
+            oy = clamp(((cy - r.top) / r.height) * 100);
+            apply();
+        }
+        function toggle(cx, cy) {
+            zoomed = !zoomed;
+            wrap.classList.toggle("zoomed", zoomed);
+            if (zoomed) originFromPoint(cx, cy);
+            else apply();
+        }
+
+        wrap.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            toggle(ev.clientX, ev.clientY);
+        });
+        wrap.addEventListener("mousemove", (ev) => {
+            if (zoomed) originFromPoint(ev.clientX, ev.clientY);
+        });
+
+        /* touch: tap toggles; while zoomed, dragging pans the image with
+           the finger (origin moves opposite the drag, scaled to the zoom) */
+        let start = null, last = null, moved = false;
+        wrap.addEventListener("touchstart", (ev) => {
+            if (ev.touches.length !== 1) return;
+            start = last = { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+            moved = false;
+        }, { passive: true });
+        wrap.addEventListener("touchmove", (ev) => {
+            if (!zoomed || !last || ev.touches.length !== 1) return;
+            const t = ev.touches[0];
+            if (Math.abs(t.clientX - start.x) + Math.abs(t.clientY - start.y) > 8) moved = true;
+            const r = wrap.getBoundingClientRect();
+            ox = clamp(ox - ((t.clientX - last.x) / (SCALE - 1)) / r.width * 100);
+            oy = clamp(oy - ((t.clientY - last.y) / (SCALE - 1)) / r.height * 100);
+            last = { x: t.clientX, y: t.clientY };
+            apply();
+            ev.preventDefault(); // the drag pans the image, not the page
+        }, { passive: false });
+        wrap.addEventListener("touchend", (ev) => {
+            if (!start) return;
+            if (!moved && ev.changedTouches.length === 1) {
+                toggle(ev.changedTouches[0].clientX, ev.changedTouches[0].clientY);
+                ev.preventDefault(); // swallow the synthetic click
+            }
+            start = last = null;
+            moved = false;
+        });
+    }
+    document.querySelectorAll("img[data-zoom]").forEach(makeZoomable);
+
     /* ---------------- lightbox ---------------- */
     const lightbox = document.getElementById("lv-lightbox");
     let lbItems = [];
@@ -345,6 +415,7 @@
             img.src = item.src;
             img.alt = item.title || "";
             media.appendChild(img);
+            makeZoomable(img);
         } else if (item.kind === "video") {
             const v = document.createElement("video");
             v.src = item.src;
